@@ -1,0 +1,71 @@
+{% set page = page|default('') %}
+
+<header class="navbar">
+
+    <div class="nav-container">
+
+        <a href="{{ path('app_home') }}" class="logo">
+
+            <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="logo-img">
+
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="{{ path('app_home') }}" class="{{ page == 'home' ? 'active' : '' }}">
+                HOME
+            </a>
+
+            <a href="#" class="{{ page == 'courts' ? 'active' : '' }}">
+                COURTS
+            </a>
+
+            <a href="#" class="{{ page == 'openplays' ? 'active' : '' }}">
+                OPEN PLAYS
+            </a>
+
+            <a href="#" class="{{ page == 'tournaments' ? 'active' : '' }}">
+                TOURNAMENTS
+            </a>
+
+            <a href="#" class="{{ page == 'about' ? 'active' : '' }}">
+                ABOUT US
+            </a>
+
+            <a href="#" class="{{ page == 'support' ? 'active' : '' }}">
+                CONTACT US
+            </a>
+
+        </nav>
+
+
+        <a href="#" class="login-btn">
+            LOG IN / SIGN UP
+        </a>
+
+
+        <button class="menu-btn" id="menuBtn">
+            ☰
+        </button>
+
+    </div>
+
+</header>
+
+
+<div class="mobile-menu" id="mobileMenu">
+
+    <a href="{{ path('app_home') }}">HOME</a>
+
+    <a href="#">COURTS</a>
+
+    <a href="#">OPEN PLAYS</a>
+
+    <a href="#">TOURNAMENTS</a>
+
+    <a href="#">ABOUT US</a>
+
+    <a href="#">CONTACT US</a>
+
+</div>

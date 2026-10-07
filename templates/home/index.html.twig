@@ -1,0 +1,166 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+
+<!-- =========================
+     HERO
+========================= -->
+
+<section class="hero" id="home">
+
+    <div class="hero-image"></div>
+
+    <div class="hero-content">
+
+        <p class="hero-small">
+            YOUR GAME. YOUR COURT. YOUR TIME.
+        </p>
+
+        <h1>
+            BOOK.<br>
+            COMPETE.<br>
+            <span>REPEAT.</span>
+        </h1>
+
+        <p class="hero-description">
+
+            Book pickleball courts, join open plays,
+            and compete in tournaments — all in one place.
+
+        </p>
+
+
+        <div class="hero-buttons">
+
+            <a href="#courts"
+               class="primary-btn"
+               id="heroBookBtn">
+
+                BOOK A COURT
+
+            </a>
+
+            <a href="#openplays"
+               class="secondary-btn">
+
+                BROWSE OPEN PLAYS
+
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     QUICK OPTIONS
+========================= -->
+
+<section class="quick-options">
+
+    <div class="quick-container">
+
+
+        <!-- BOOK COURTS -->
+
+        <div class="quick-item">
+
+            <div class="quick-icon">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 2v4"></path>
+                    <path d="M16 2v4"></path>
+                    <rect width="18" height="18" x="3" y="4" rx="3"></rect>
+                    <path d="M3 10h18"></path>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <h3>
+                    BOOK COURTS
+                </h3>
+
+                <p>
+                    Reserve your preferred court
+                    anytime, anywhere.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- OPEN PLAYS -->
+
+        <div class="quick-item">
+
+            <div class="quick-icon">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <h3>
+                    OPEN PLAYS
+                </h3>
+
+                <p>
+                    Join open plays and meet
+                    other pickleball players.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOURNAMENTS -->
+
+        <div class="quick-item">
+
+            <div class="quick-icon">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                    <path d="M4 22h16"></path>
+                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+                </svg>
+
+            </div>
+
+            <div>
+
+                <h3>
+                    TOURNAMENTS
+                </h3>
+
+                <p>
+                    Compete, win and be
+                    part of the community.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
