@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PICKLE | Admin Panel</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ asset('auth.css') }}">
+
+</head>
+
+<body>
+
+<div class="auth-wrap">
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash {{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+
+    <div class="auth-card wide">
+
+        <div class="admin-head">
+
+            <div>
+
+                <a href="{{ path('app_home') }}" class="auth-logo">
+                    <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="auth-logo-img">
+                </a>
+
+                <h2 class="auth-title">
+                    Admin Panel
+                </h2>
+
+                <p class="auth-sub">
+                    Logged in as {{ admin.username }} — manage all PICKLE players.
+                </p>
+
+            </div>
+
+
+            <div class="admin-top-actions">
+
+                <a href="{{ path('app_courts') }}" class="small-btn">
+                    COURTS
+                </a>
+
+                <a href="{{ path('app_tournaments') }}" class="small-btn">
+                    EVENTS
+                </a>
+
+                <a href="{{ path('app_account') }}" class="small-btn">
+                    MY ACCOUNT
+                </a>
+
+                <a href="{{ path('app_logout') }}" class="small-btn danger">
+                    LOG OUT
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrap">
+
+            <table class="admin-table">
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>USERNAME</th>
+                        <th>EMAIL</th>
+                        <th>ROLE</th>
+                        <th>BOOKINGS</th>
+                        <th>JOINED</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for row in users %}
+
+                        <tr>
+
+                            <td>{{ row.id }}</td>
+
+                            <td>
+                                {{ row.username }}
+                                {{ row.id == admin.id ? ' (you)' : '' }}
+                            </td>
+
+                            <td>{{ row.email }}</td>
+
+                            <td>
+                                <span class="badge {{ row.role }}">
+                                    {{ row.role|upper }}
+                                </span>
+                            </td>
+
+                            <td>{{ row.totalBookings }}</td>
+
+                            <td>{{ row.createdAt|date('M j, Y') }}</td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <h3 class="admin-section-title">
+            ALL BOOKINGS
+        </h3>
+
+        {% if bookings is empty %}
+
+            <p class="empty-note">
+                No bookings yet.
+            </p>
+
+        {% else %}
+
+            <div class="table-wrap">
+
+                <table class="admin-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>ID</th>
+                            <th>PLAYER</th>
+                            <th>COURT</th>
+                            <th>DATE</th>
+                            <th>TIME</th>
+                            <th>PLAYERS</th>
+                            <th>STATUS</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for booking in bookings %}
+
+                            <tr>
+
+                                <td>{{ booking.id }}</td>
+
+                                <td>{{ booking.user.username }}</td>
+
+                                <td>{{ booking.courtName }}</td>
+
+                                <td>{{ booking.bookingDate|date('M j, Y') }}</td>
+
+                                <td>{{ booking.bookingTime|date('g:i A') }}</td>
+
+                                <td>{{ booking.players }}</td>
+
+                                <td>
+                                    <span class="status {{ booking.status }}">
+                                        {{ booking.status|upper }}
+                                    </span>
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% endif %}
+
+
+        <a class="auth-back" href="{{ path('app_home') }}">
+            ← BACK TO HOMEPAGE
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

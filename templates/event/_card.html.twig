@@ -49,9 +49,7 @@
         {% elseif not app.user %}
             <a href="{{ path('app_login', {notice: 'login-event'}) }}" class="join-btn">JOIN</a>
         {% else %}
-            <form method="POST" action="database/events.php" class="join-form">
-                <input type="hidden" name="action" value="join">
-                <input type="hidden" name="event_id" value="{{ ev.id }}">
+            <form method="POST" action="{{ path('app_event_join', {id: ev.id}) }}" class="join-form">
                 <button type="submit" class="join-btn">JOIN</button>
             </form>
         {% endif %}

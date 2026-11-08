@@ -234,7 +234,7 @@
         <h2>Book a Court</h2>
 
 
-        <form id="bookingForm" method="POST" action="/database/book.php" data-login-url="{{ path('app_login', {notice: 'login-first'}) }}">
+        <form id="bookingForm" method="POST" action="{{ path('app_book') }}" data-login-url="{{ path('app_login', {notice: 'login-first'}) }}" data-slots-url="{{ path('app_slots') }}">
 
             <input type="hidden" name="action" value="book">
 

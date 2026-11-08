@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PICKLE | My Account</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ asset('auth.css') }}">
+
+</head>
+
+<body>
+
+<div class="auth-wrap">
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash {{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+
+    <div class="auth-card">
+
+        <a href="{{ path('app_home') }}" class="auth-logo">
+            <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="auth-logo-img">
+        </a>
+
+
+        <h2 class="auth-title">
+            My Account
+        </h2>
+
+        <p class="auth-sub">
+            Your PICKLE profile details.
+        </p>
+
+
+        <div class="profile-row">
+            <span>USERNAME</span>
+            <strong>{{ user.username }}</strong>
+        </div>
+
+        <div class="profile-row">
+            <span>EMAIL</span>
+            <strong>{{ user.email }}</strong>
+        </div>
+
+        <div class="profile-row">
+            <span>ROLE</span>
+            <span class="badge {{ user.role }}">
+                {{ user.role|upper }}
+            </span>
+        </div>
+
+        <div class="profile-row">
+            <span>MEMBER SINCE</span>
+            <strong>{{ user.createdAt|date('M j, Y') }}</strong>
+        </div>
+
+        <div class="profile-row">
+            <span>BOOKINGS</span>
+            <strong>{{ bookings|length }}</strong>
+        </div>
+
+        <div class="profile-row">
+            <span>EVENTS JOINED</span>
+            <strong>{{ eventJoins|length }}</strong>
+        </div>
+
+
+        <h3 class="section-sub">
+            MY BOOKINGS
+        </h3>
+
+        {% if bookings is empty %}
+
+            <p class="empty-note">
+                No bookings yet — hit BOOK COURT on the homepage! 🏓
+            </p>
+
+        {% else %}
+
+            {% for booking in bookings %}
+
+                <div class="booking-item">
+
+                    <div>
+                        <strong>{{ booking.courtName }}</strong>
+                        <span class="meta">
+                            {{ booking.bookingDate|date('D, M j, Y') }}
+                            •
+                            {{ booking.bookingTime|date('g:i A') }}
+                            •
+                            {{ booking.players }} players
+                        </span>
+                    </div>
+
+                    <div class="booking-side">
+
+                        <span class="status {{ booking.status }}">
+                            {{ booking.status|upper }}
+                        </span>
+
+                        {% if booking.status != 'cancelled' %}
+
+                            <form method="POST" action="{{ path('app_book') }}"
+                                  onsubmit="return confirm('Cancel this booking?')">
+
+                                <input type="hidden" name="action" value="cancel">
+                                <input type="hidden" name="booking_id" value="{{ booking.id }}">
+
+                                <button type="submit" class="small-btn danger">
+                                    CANCEL
+                                </button>
+
+                            </form>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+
+        <h3 class="section-sub">
+            MY EVENTS
+        </h3>
+
+        {% if eventJoins is empty %}
+
+            <p class="empty-note">
+                You haven't joined any open plays or tournaments yet! 🏆
+            </p>
+
+        {% else %}
+
+            {% for eventJoin in eventJoins %}
+                {% set event = eventJoin.event %}
+
+                <div class="booking-item">
+
+                    <div>
+                        <strong>{{ event.title }}</strong>
+                        <span class="meta">
+                            {{ event.type|replace({'_': ' '})|upper }}
+                            • {{ event.eventDate|date('D, M j, Y') }}
+                            • {{ event.eventTime|date('g:i A') }}
+                            • {{ event.location }}
+                            {% if event.prize %}
+                                • 🏆 {{ event.prize }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="booking-side">
+
+                        {% if event.eventDate < date('today') %}
+
+                            <span class="badge past">
+                                EVENT OVER
+                            </span>
+
+                        {% else %}
+
+                            <form method="POST" action="{{ path('app_event_leave', {id: event.id}) }}"
+                                  onsubmit="return confirm('Leave this event?')">
+
+                                <button type="submit" class="small-btn danger">
+                                    LEAVE
+                                </button>
+
+                            </form>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+
+        <div class="auth-actions">
+
+            {% if user.isAdmin %}
+                <a href="{{ path('app_admin') }}" class="auth-btn">
+                    OPEN ADMIN PANEL
+                </a>
+            {% endif %}
+
+            <a href="{{ path('app_account_edit') }}" class="auth-btn outline">
+                EDIT PROFILE
+            </a>
+
+            <a href="{{ path('app_logout') }}" class="auth-btn danger">
+                LOG OUT
+            </a>
+
+        </div>
+
+
+        <a class="auth-back" href="{{ path('app_home') }}">
+            ← BACK TO HOMEPAGE
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

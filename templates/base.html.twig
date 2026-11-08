@@ -42,7 +42,7 @@
             </nav>
 
             {% if app.user %}
-                <a href="/database/info.php" class="login-btn">HI, {{ app.user.username|upper }}</a>
+                <a href="{{ path('app_account') }}" class="login-btn">HI, {{ app.user.username|upper }}</a>
             {% else %}
                 <a href="{{ path('app_login') }}" class="login-btn">LOG IN</a>
                 <a href="{{ path('app_register') }}" class="login-btn">SIGN UP</a>

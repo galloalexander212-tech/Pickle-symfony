@@ -18,7 +18,7 @@ class AuthController extends AbstractController
     public function login(Request $request): Response
     {
         if ($this->getUser() instanceof User) {
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute($this->getUser()->isAdmin() ? 'app_admin' : 'app_account');
         }
 
         $session = $request->getSession();
@@ -41,7 +41,7 @@ class AuthController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
     ): Response {
         if ($this->getUser() instanceof User) {
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute($this->getUser()->isAdmin() ? 'app_admin' : 'app_account');
         }
 
         $errors = [];

@@ -203,7 +203,7 @@ function loadSlots() {
 
 
     fetch(
-        "database/slots.php?court=" +
+        bookingForm.dataset.slotsUrl + "?court=" +
         encodeURIComponent(court) +
         "&date=" +
         encodeURIComponent(dateStr)

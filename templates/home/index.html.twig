@@ -251,9 +251,7 @@
                     {% elseif not app.user %}
                         <a href="{{ path('app_login', {notice: 'login-event'}) }}" class="op-card-btn">JOIN NOW</a>
                     {% else %}
-                        <form method="POST" action="/database/events.php">
-                            <input type="hidden" name="action" value="join">
-                            <input type="hidden" name="event_id" value="{{ nextPlay.id }}">
+                        <form method="POST" action="{{ path('app_event_join', {id: nextPlay.id}) }}">
                             <button type="submit" class="op-card-btn">JOIN NOW</button>
                         </form>
                     {% endif %}
@@ -328,9 +326,7 @@
                     {% elseif not app.user %}
                         <a href="{{ path('app_login', {notice: 'login-event'}) }}" class="op-card-btn">REGISTER NOW</a>
                     {% else %}
-                        <form method="POST" action="/database/events.php">
-                            <input type="hidden" name="action" value="join">
-                            <input type="hidden" name="event_id" value="{{ nextT.id }}">
+                        <form method="POST" action="{{ path('app_event_join', {id: nextT.id}) }}">
                             <button type="submit" class="op-card-btn">REGISTER NOW</button>
                         </form>
                     {% endif %}
@@ -368,7 +364,7 @@
         <p>RESERVE YOUR COURT</p>
         <h2>Book a Court</h2>
 
-        <form id="bookingForm" method="POST" action="/database/book.php" data-login-url="{{ path('app_login', {notice: 'login-first'}) }}">
+        <form id="bookingForm" method="POST" action="{{ path('app_book') }}" data-login-url="{{ path('app_login', {notice: 'login-first'}) }}" data-slots-url="{{ path('app_slots') }}">
             <input type="hidden" name="action" value="book">
 
             <label>COURT</label>
