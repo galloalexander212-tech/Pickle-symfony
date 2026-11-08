@@ -15,6 +15,7 @@ services:
             interval: 10s
         volumes:
             - webprog_mysql_data:/var/lib/mysql:rw
+            - ./init_webprog_v2.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     ###< doctrine/doctrine-bundle ###
 
 volumes:
