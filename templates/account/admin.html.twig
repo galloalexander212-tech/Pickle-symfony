@@ -52,12 +52,12 @@
 
             <div class="admin-top-actions">
 
-                <a href="{{ path('app_courts') }}" class="small-btn">
-                    COURTS
+                <a href="{{ path('app_admin_courts') }}" class="small-btn">
+                    MANAGE COURTS
                 </a>
 
-                <a href="{{ path('app_tournaments') }}" class="small-btn">
-                    EVENTS
+                <a href="{{ path('app_admin_events') }}" class="small-btn">
+                    MANAGE EVENTS
                 </a>
 
                 <a href="{{ path('app_account') }}" class="small-btn">
@@ -86,6 +86,7 @@
                         <th>ROLE</th>
                         <th>BOOKINGS</th>
                         <th>JOINED</th>
+                        <th>ACTIONS</th>
                     </tr>
 
                 </thead>
@@ -114,6 +115,37 @@
                             <td>{{ row.totalBookings }}</td>
 
                             <td>{{ row.createdAt|date('M j, Y') }}</td>
+
+                            <td>
+
+                                {% if row.id == admin.id %}
+
+                                    —
+
+                                {% else %}
+
+                                    <form method="POST" action="{{ path('app_admin') }}" class="row-form">
+                                        <input type="hidden" name="action" value="toggle">
+                                        <input type="hidden" name="user_id" value="{{ row.id }}">
+                                        <button type="submit" class="small-btn">
+                                            {{ row.role == 'admin' ? 'MAKE USER' : 'MAKE ADMIN' }}
+                                        </button>
+                                    </form>
+
+                                    {% if row.role == 'user' %}
+                                        <form method="POST" action="{{ path('app_admin') }}" class="row-form"
+                                              onsubmit="return confirm('Delete this user permanently?')">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="user_id" value="{{ row.id }}">
+                                            <button type="submit" class="small-btn danger">
+                                                DELETE
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                {% endif %}
+
+                            </td>
 
                         </tr>
 
@@ -152,6 +184,7 @@
                             <th>TIME</th>
                             <th>PLAYERS</th>
                             <th>STATUS</th>
+                            <th>ACTIONS</th>
                         </tr>
 
                     </thead>
@@ -178,6 +211,29 @@
                                     <span class="status {{ booking.status }}">
                                         {{ booking.status|upper }}
                                     </span>
+                                </td>
+
+                                <td>
+
+                                    {% if booking.status != 'cancelled' %}
+                                        <form method="POST" action="{{ path('app_admin') }}" class="row-form">
+                                            <input type="hidden" name="action" value="{{ booking.status == 'pending' ? 'confirm' : 'bcancel' }}">
+                                            <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                            <button type="submit" class="small-btn">
+                                                {{ booking.status == 'pending' ? 'CONFIRM' : 'CANCEL' }}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    <form method="POST" action="{{ path('app_admin') }}" class="row-form"
+                                          onsubmit="return confirm('Delete this booking permanently?')">
+                                        <input type="hidden" name="action" value="bdelete">
+                                        <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                        <button type="submit" class="small-btn danger">
+                                            DELETE
+                                        </button>
+                                    </form>
+
                                 </td>
 
                             </tr>

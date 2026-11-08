@@ -15,40 +15,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class AccountController extends AbstractController
 {
-    #[Route('/admin', name: 'app_admin', methods: ['GET'])]
-    public function admin(EntityManagerInterface $entityManager): Response
-    {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            return $this->redirectToRoute('app_login');
-        }
-        if (!$user->isAdmin()) {
-            return $this->redirectToRoute('app_account');
-        }
-
-        $users = $entityManager->createQueryBuilder()
-            ->select('user.id AS id, user.username AS username, user.email AS email, user.role AS role, user.createdAt AS createdAt, COUNT(booking.id) AS totalBookings')
-            ->from(User::class, 'user')
-            ->leftJoin('user.bookings', 'booking')
-            ->groupBy('user.id')
-            ->orderBy('user.createdAt', 'DESC')
-            ->getQuery()
-            ->getArrayResult();
-
-        $bookings = $entityManager->getRepository(Booking::class)->createQueryBuilder('booking')
-            ->addSelect('user')
-            ->join('booking.user', 'user')
-            ->orderBy('booking.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
-
-        return $this->render('account/admin.html.twig', [
-            'admin' => $user,
-            'users' => $users,
-            'bookings' => $bookings,
-        ]);
-    }
-
     #[Route('/account', name: 'app_account', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {

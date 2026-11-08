@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PICKLE | Manage Events</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&amp;family=Alike+Angular&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ asset('auth.css') }}">
+
+</head>
+
+<body>
+
+<div class="auth-wrap">
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash {{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+
+    <div class="auth-card wide">
+
+        <div class="admin-head">
+
+            <div>
+
+                <a href="{{ path('app_home') }}" class="auth-logo">
+                    <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="auth-logo-img">
+                </a>
+
+                <h2 class="auth-title">Manage Events</h2>
+
+                <p class="auth-sub">Create open plays and tournaments for the community.</p>
+
+            </div>
+
+
+            <div class="admin-top-actions">
+
+                <a href="{{ path('app_admin_courts') }}" class="small-btn">MANAGE COURTS</a>
+                <a href="{{ path('app_admin') }}" class="small-btn">ADMIN PANEL</a>
+                <a href="{{ path('app_account') }}" class="small-btn">MY ACCOUNT</a>
+                <a href="{{ path('app_logout') }}" class="small-btn danger">LOG OUT</a>
+
+            </div>
+
+        </div>
+
+
+        {% set isEdit = editEvent is not null %}
+
+        <h3 class="admin-section-title">
+            {{ isEdit ? 'EDIT EVENT — ' ~ editEvent.title : 'CREATE AN EVENT' }}
+        </h3>
+
+        <form method="POST" action="{{ path('app_admin_events') }}" enctype="multipart/form-data" class="admin-form">
+
+            <input type="hidden" name="action" value="{{ isEdit ? 'update' : 'create' }}">
+
+            {% if isEdit %}
+                <input type="hidden" name="event_id" value="{{ editEvent.id }}">
+            {% endif %}
+
+
+            <div class="form-group">
+
+                <label>EVENT TYPE</label>
+
+                {% set selectedType = values.type|default(isEdit ? editEvent.type : 'open_play') %}
+                <select name="type">
+                    <option value="open_play" {{ selectedType == 'open_play' ? 'selected' : '' }}>Open Play</option>
+                    <option value="tournament" {{ selectedType == 'tournament' ? 'selected' : '' }}>Tournament</option>
+                </select>
+
+                {% if errors.type is defined %}
+                    <p class="field-error">{{ errors.type }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>TITLE</label>
+
+                <input type="text" name="title"
+                       value="{{ values.title|default(isEdit ? editEvent.title : '') }}"
+                       placeholder="Saturday Morning Smash">
+
+                {% if errors.title is defined %}
+                    <p class="field-error">{{ errors.title }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>LOCATION</label>
+
+                <input type="text" name="location"
+                       value="{{ values.location|default(isEdit ? editEvent.location : '') }}"
+                       placeholder="Dumaguete City">
+
+                {% if errors.location is defined %}
+                    <p class="field-error">{{ errors.location }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>DATE</label>
+
+                <input type="date" name="date"
+                       value="{{ values.date|default(isEdit ? editEvent.eventDate|date('Y-m-d') : '') }}">
+
+                {% if errors.date is defined %}
+                    <p class="field-error">{{ errors.date }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>TIME</label>
+
+                <input type="time" name="time"
+                       value="{{ values.time|default(isEdit ? editEvent.eventTime|date('H:i') : '') }}">
+
+                {% if errors.time is defined %}
+                    <p class="field-error">{{ errors.time }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>MAX PLAYERS</label>
+
+                <input type="number" name="max_players" min="2" max="64"
+                       value="{{ values.max_players|default(isEdit ? editEvent.maxPlayers : '8') }}">
+
+                {% if errors.max_players is defined %}
+                    <p class="field-error">{{ errors.max_players }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>PRIZE (TOURNAMENTS — OPTIONAL)</label>
+
+                <input type="text" name="prize"
+                       value="{{ values.prize|default(isEdit ? editEvent.prize : '') }}"
+                       placeholder="₱5,000 + bragging rights">
+
+                {% if errors.prize is defined %}
+                    <p class="field-error">{{ errors.prize }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>PHOTO {{ isEdit ? '(LEAVE EMPTY TO KEEP CURRENT)' : '(OPTIONAL)' }}</label>
+
+                <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
+
+                {% if errors.image is defined %}
+                    <p class="field-error">{{ errors.image }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group span-2">
+
+                <label>DESCRIPTION (OPTIONAL)</label>
+
+                <input type="text" name="description"
+                       value="{{ values.description|default(isEdit ? editEvent.description : '') }}"
+                       placeholder="All levels welcome — paddles provided!">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <button type="submit" class="auth-btn">
+                    {{ isEdit ? 'SAVE CHANGES' : 'CREATE EVENT' }}
+                </button>
+
+            </div>
+
+        </form>
+
+        {% if isEdit %}
+            <p class="edit-note">
+                Editing <strong>{{ editEvent.title }}</strong> —
+                <a href="{{ path('app_admin_events') }}">cancel</a>
+            </p>
+        {% endif %}
+
+
+        <h3 class="admin-section-title">ALL EVENTS</h3>
+
+        {% if events is empty %}
+
+            <p class="empty-note">No events yet — create your first one above!</p>
+
+        {% else %}
+
+            <div class="table-wrap">
+
+                <table class="admin-table">
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>PHOTO</th>
+                            <th>TYPE</th>
+                            <th>TITLE</th>
+                            <th>DATE</th>
+                            <th>TIME</th>
+                            <th>LOCATION</th>
+                            <th>JOINED</th>
+                            <th>PRIZE</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for event in events %}
+                            {% set isPast = event.eventDate < date('today') %}
+
+                            <tr>
+
+                                <td>{{ event.id }}</td>
+
+                                <td>
+                                    {% if event.image %}
+                                        <img src="{{ asset(event.image) }}" alt="{{ event.title }}" class="admin-thumb">
+                                    {% else %}
+                                        <div class="admin-thumb-fallback">🏓</div>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <span class="badge {{ event.type }}{{ isPast ? ' past' : '' }}">
+                                        {{ event.type|replace({'_': ' '})|upper }}
+                                    </span>
+                                </td>
+
+                                <td>{{ event.title }}</td>
+                                <td>{{ event.eventDate|date('M j, Y') }}</td>
+                                <td>{{ event.eventTime|date('g:i A') }}</td>
+                                <td>{{ event.location }}</td>
+                                <td>{{ event.joinedCount }} / {{ event.maxPlayers }}</td>
+                                <td>{{ event.prize ? event.prize : '—' }}</td>
+
+                                <td>
+
+                                    <a href="{{ path('app_admin_events', {edit: event.id}) }}" class="small-btn">EDIT</a>
+
+                                    <form method="POST" action="{{ path('app_admin_events') }}" class="row-form"
+                                          onsubmit="return confirm('Delete this event? All joins will be removed too.')">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="event_id" value="{{ event.id }}">
+                                        <button type="submit" class="small-btn danger">DELETE</button>
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% endif %}
+
+
+        <a class="auth-back" href="{{ path('app_home') }}">← BACK TO HOMEPAGE</a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PICKLE | Manage Courts</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&amp;family=Alike+Angular&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ asset('auth.css') }}">
+
+</head>
+
+<body>
+
+<div class="auth-wrap">
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash {{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+
+    <div class="auth-card wide">
+
+        <div class="admin-head">
+
+            <div>
+
+                <a href="{{ path('app_home') }}" class="auth-logo">
+                    <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="auth-logo-img">
+                </a>
+
+                <h2 class="auth-title">
+                    Manage Courts
+                </h2>
+
+                <p class="auth-sub">
+                    Add courts players can book — with photos.
+                </p>
+
+            </div>
+
+
+            <div class="admin-top-actions">
+
+                <a href="{{ path('app_admin') }}" class="small-btn">ADMIN PANEL</a>
+                <a href="{{ path('app_admin_events') }}" class="small-btn">MANAGE EVENTS</a>
+                <a href="{{ path('app_account') }}" class="small-btn">MY ACCOUNT</a>
+                <a href="{{ path('app_logout') }}" class="small-btn danger">LOG OUT</a>
+
+            </div>
+
+        </div>
+
+
+        {% set isEdit = editCourt is not null %}
+
+        <h3 class="admin-section-title">
+            {{ isEdit ? 'EDIT COURT — ' ~ editCourt.name : 'ADD A COURT' }}
+        </h3>
+
+        <form method="POST" action="{{ path('app_admin_courts') }}" enctype="multipart/form-data" class="admin-form">
+
+            <input type="hidden" name="action" value="{{ isEdit ? 'update' : 'create' }}">
+
+            {% if isEdit %}
+                <input type="hidden" name="court_id" value="{{ editCourt.id }}">
+            {% endif %}
+
+
+            <div class="form-group">
+
+                <label>COURT NAME</label>
+
+                <input type="text" name="name"
+                       value="{{ values.name|default(isEdit ? editCourt.name : '') }}"
+                       placeholder="e.g. Skyline Pickleball Club">
+
+                {% if errors.name is defined %}
+                    <p class="field-error">{{ errors.name }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>LOCATION</label>
+
+                <input type="text" name="location"
+                       value="{{ values.location|default(isEdit ? editCourt.location : '') }}"
+                       placeholder="e.g. Dumaguete City">
+
+                {% if errors.location is defined %}
+                    <p class="field-error">{{ errors.location }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>RATING (0–5)</label>
+
+                <input type="number" name="rating" step="0.1" min="0" max="5"
+                       value="{{ values.rating|default(isEdit ? editCourt.rating : '4.5') }}">
+
+                {% if errors.rating is defined %}
+                    <p class="field-error">{{ errors.rating }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>PHOTO {{ isEdit ? '(LEAVE EMPTY TO KEEP CURRENT)' : '(OPTIONAL)' }}</label>
+
+                <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
+
+                {% if errors.image is defined %}
+                    <p class="field-error">{{ errors.image }}</p>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <button type="submit" class="auth-btn">
+                    {{ isEdit ? 'SAVE CHANGES' : 'ADD COURT' }}
+                </button>
+
+            </div>
+
+        </form>
+
+        {% if isEdit %}
+            <p class="edit-note">
+                Editing <strong>{{ editCourt.name }}</strong> —
+                <a href="{{ path('app_admin_courts') }}">cancel</a>
+            </p>
+        {% endif %}
+
+
+        <h3 class="admin-section-title">ALL COURTS</h3>
+
+        {% if courts is empty %}
+
+            <p class="empty-note">No courts yet — add your first one above!</p>
+
+        {% else %}
+
+            <div class="table-wrap">
+
+                <table class="admin-table">
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>PHOTO</th>
+                            <th>NAME</th>
+                            <th>LOCATION</th>
+                            <th>RATING</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for court in courts %}
+
+                            <tr>
+
+                                <td>{{ court.id }}</td>
+
+                                <td>
+                                    {% if court.image %}
+                                        <img src="{{ asset(court.image) }}" alt="{{ court.name }}" class="admin-thumb">
+                                    {% else %}
+                                        <div class="admin-thumb-fallback">🏓</div>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ court.name }}</td>
+                                <td>{{ court.location }}</td>
+                                <td>★ {{ court.rating|number_format(1) }}</td>
+
+                                <td>
+
+                                    <a href="{{ path('app_admin_courts', {edit: court.id}) }}" class="small-btn">EDIT</a>
+
+                                    <form method="POST" action="{{ path('app_admin_courts') }}" class="row-form"
+                                          onsubmit="return confirm('Delete this court?')">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="court_id" value="{{ court.id }}">
+                                        <button type="submit" class="small-btn danger">DELETE</button>
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% endif %}
+
+
+        <a class="auth-back" href="{{ path('app_home') }}">← BACK TO HOMEPAGE</a>
+
+    </div>
+
+</div>
+
+</body>
+</html>
