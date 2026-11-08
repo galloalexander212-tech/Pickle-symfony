@@ -1,18 +1,31 @@
-
 services:
-###> doctrine/doctrine-bundle ###
-  database:
-    ports:
-      - "5432"
-###< doctrine/doctrine-bundle ###
 
-###> symfony/mailer ###
-  mailer:
-    image: axllent/mailpit
-    ports:
-      - "1025"
-      - "8025"
-    environment:
-      MP_SMTP_AUTH_ACCEPT_ANY: 1
-      MP_SMTP_AUTH_ALLOW_INSECURE: 1
-###< symfony/mailer ###
+    ###> doctrine/doctrine-bundle ###
+    database:
+        ports:
+            - "3306:3306"      # fixed port so .env can use 127.0.0.1:3306
+    ###< doctrine/doctrine-bundle ###
+
+    ###> symfony/mailer ###
+    mailer:
+        image: axllent/mailpit
+        container_name: webprog-mailer
+        ports:
+            - "1025:1025"
+            - "8025:8025"      # Mailpit UI → http://localhost:8025
+        environment:
+            MP_SMTP_AUTH_ACCEPT_ANY: 1
+            MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ###< symfony/mailer ###
+
+    ### webprog: phpMyAdmin ###
+    phpmyadmin:
+        image: phpmyadmin
+        container_name: webprog-pma
+        ports:
+            - "8080:80"        # → http://localhost:8080  (root / secret)
+        environment:
+            PMA_HOST: database
+            PMA_PORT: 3306
+        depends_on:
+            - database

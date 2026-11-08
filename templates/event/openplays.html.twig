@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}PICKLE | Open Plays{% endblock %}
+
+{% block body %}
+<section class="page-hero">
+
+    <div class="section-container">
+
+        <p class="op-eyebrow">
+            MEET THE COMMUNITY
+        </p>
+
+        <h1>
+            OPEN PLAYS
+        </h1>
+
+        <p class="op-desc">
+            Every upcoming open play — join one
+            and meet players in your area.
+        </p>
+
+    </div>
+
+</section>
+
+
+<section class="open-play">
+
+    <div class="section-container">
+
+        {% if openPlays is empty %}
+
+            <p class="event-empty">
+                No upcoming open plays right now — check back soon! 🏓
+            </p>
+
+        {% else %}
+
+            <div class="event-grid">
+
+                {% for ev in openPlays %}
+
+                    {% include 'event/_card.html.twig' %}
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</section>
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}PICKLE | Courts{% endblock %}
+
+{% block body %}
+<section class="page-hero">
+
+    <div class="section-container">
+
+        <p class="op-eyebrow">
+            EXPLORE
+        </p>
+
+        <h1>
+            ALL COURTS
+        </h1>
+
+        <p class="op-desc">
+            Every court you can book — pick one
+            and reserve your slot.
+        </p>
+
+    </div>
+
+</section>
+
+
+<section class="booking-section">
+
+    <div class="section-container">
+
+        <form class="search-box" method="GET" action="{{ path('app_courts') }}">
+
+
+            <div class="search-field">
+
+                <label>
+                    LOCATION
+                </label>
+
+                <input
+                    type="text"
+                    name="location"
+                    value="{{ location }}"
+                    placeholder="Dumaguete City"
+                >
+
+            </div>
+
+
+            <div class="search-field">
+
+                <label>
+                    DATE
+                </label>
+
+                <input
+                    type="date"
+                    name="date"
+                    value="{{ date }}"
+                >
+
+            </div>
+
+
+            <div class="search-field">
+
+                <label>
+                    PLAYERS
+                </label>
+
+                <select name="players">
+
+                    <option value="" {{ players == 0 ? 'selected' : '' }}>
+                        Any
+                    </option>
+
+                    {% for p in [2, 4, 6, 8] %}
+
+                        <option value="{{ p }}" {{ players == p ? 'selected' : '' }}>
+                            {{ p }} Players
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="search-btn">
+
+                SEARCH
+
+            </button>
+
+        </form>
+
+
+        {% if hasFilters %}
+
+            <p class="search-message">
+                Showing courts
+                {{ location != '' ? 'in “' ~ location ~ '” ' : '' }}
+                {{ date != '' ? 'on ' ~ date|date('D, M j') ~ ' ' : '' }}
+                {{ players > 0 ? 'for ' ~ players ~ ' players' : '' }}.
+                <a href="{{ path('app_courts') }}">Clear filters</a>
+            </p>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+
+<section class="courts-section">
+
+    <div class="section-container">
+
+        {% if courts is empty %}
+
+            <p class="event-empty">
+                No courts found{{ location != '' ? ' in “' ~ location ~ '”' : '' }} — try another location! 🏓
+            </p>
+
+        {% else %}
+
+            <div class="court-grid court-grid-page">
+
+                {% for c in courts %}
+
+                    {% set taken = bookedOnDate[c.name]|default(0) %}
+                    {% set free = 16 - taken %}
+                    {% set fullOnDate = date != '' and free <= 0 %}
+
+                    <article class="court-card">
+
+                        <div class="court-image">
+
+                            {% if c.image is not empty %}
+
+                                {% set courtImage = c.image starts with 'uploads/courts/' ? c.image : 'uploads/courts/' ~ c.image %}
+                                <img src="{{ asset(courtImage) }}" alt="{{ c.name }}">
+
+                            {% else %}
+
+                                <div class="court-image-fallback">
+
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="7.5" r="1.6" fill="currentColor" stroke="none"></circle>
+                                        <circle cx="16.5" cy="10.5" r="1.6" fill="currentColor" stroke="none"></circle>
+                                        <circle cx="16.5" cy="15" r="1.6" fill="currentColor" stroke="none"></circle>
+                                        <circle cx="12" cy="17.5" r="1.6" fill="currentColor" stroke="none"></circle>
+                                        <circle cx="7.5" cy="15" r="1.6" fill="currentColor" stroke="none"></circle>
+                                        <circle cx="7.5" cy="10.5" r="1.6" fill="currentColor" stroke="none"></circle>
+                                        <circle cx="12" cy="12.5" r="1.6" fill="currentColor" stroke="none"></circle>
+                                    </svg>
+
+                                </div>
+
+                            {% endif %}
+
+                            <span class="rating">★ {{ c.rating|number_format(1) }}</span>
+
+                        </div>
+
+                        <div class="court-details">
+
+                            <h3>{{ c.name }}</h3>
+
+                            <p class="court-location">◉ {{ c.location }}</p>
+
+
+                            {% if date != '' %}
+
+                                <p class="court-availability {{ fullOnDate ? 'full' : '' }}">
+
+                                    {% if fullOnDate %}
+
+                                        FULL on {{ date|date('M j') }}
+
+                                    {% else %}
+
+                                        {{ free }} slots free on {{ date|date('M j') }}
+
+                                    {% endif %}
+
+                                </p>
+
+                            {% endif %}
+
+
+                            {% if fullOnDate %}
+
+                                <button class="book-btn" disabled>
+                                    FULL ON {{ date|date('M j')|upper }}
+                                </button>
+
+                            {% else %}
+
+                                <button class="book-btn" data-court="{{ c.name }}">
+                                    BOOK COURT
+                                </button>
+
+                            {% endif %}
+
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</section>
+
+
+<div class="modal" id="bookingModal">
+
+    <div class="modal-box">
+
+        <button class="close-btn" id="closeModal">×</button>
+
+        <p>RESERVE YOUR COURT</p>
+
+        <h2>Book a Court</h2>
+
+
+        <form id="bookingForm" method="POST" action="/database/book.php" data-login-url="{{ path('app_login', {notice: 'login-first'}) }}">
+
+            <input type="hidden" name="action" value="book">
+
+            <label>COURT</label>
+
+            <select id="courtSelect" name="court" required>
+
+                <option value="">— Choose a court —</option>
+
+                {% for c in courts %}
+
+                    <option value="{{ c.name }}">
+                        {{ c.name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <label>DATE</label>
+
+            <input
+                type="date"
+                id="bookingDate"
+                name="date"
+                required
+                value="{{ date }}"
+            >
+
+
+            <label>PLAYERS</label>
+
+            <select id="playersSelect" name="players" required>
+
+                {% for p in [2, 4, 6, 8] %}
+
+                    <option value="{{ p }}" {{ (players > 0 ? players : 2) == p ? 'selected' : '' }}>
+                        {{ p }} Players
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <label>TIME</label>
+
+            <input type="hidden" name="time" id="bookingTime">
+
+            <div class="slot-grid" id="slotGrid"></div>
+
+            <p class="slot-hint" id="slotHint">
+                Choose a court and date to see available times.
+            </p>
+
+
+            <button type="submit" class="primary-btn confirm-btn">
+                CONFIRM BOOKING
+            </button>
+
+        </form>
+
+
+        <p id="bookingMessage" class="booking-message"></p>
+
+    </div>
+
+</div>
+{% endblock %}

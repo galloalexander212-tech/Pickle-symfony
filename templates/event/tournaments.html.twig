@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}PICKLE | Tournaments{% endblock %}
+
+{% block body %}
+<section class="page-hero">
+
+    <div class="section-container">
+
+        <p class="op-eyebrow">
+            COMPETE AND WIN
+        </p>
+
+        <h1>
+            TOURNAMENTS
+        </h1>
+
+        <p class="op-desc">
+            Every upcoming tournament — register
+            and fight for the crown.
+        </p>
+
+    </div>
+
+</section>
+
+
+<section class="tournament tournament-page">
+
+    <div class="section-container">
+
+        {% if tournaments is empty %}
+
+            <p class="event-empty">
+                No upcoming tournaments right now — check back soon! 🏆
+            </p>
+
+        {% else %}
+
+            <div class="event-grid">
+
+                {% for ev in tournaments %}
+
+                    {% include 'event/_card.html.twig' %}
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</section>
+{% endblock %}

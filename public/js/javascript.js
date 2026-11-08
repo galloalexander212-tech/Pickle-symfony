@@ -301,7 +301,7 @@ if (heroBookBtn) {
         if (typeof IS_LOGGED_IN !== "undefined" && !IS_LOGGED_IN) {
 
             window.location.href =
-                "database/index.php?notice=login-first";
+                document.getElementById("bookingForm").dataset.loginUrl;
 
             return;
 
@@ -333,7 +333,7 @@ bookButtons.forEach(function (button) {
         if (typeof IS_LOGGED_IN !== "undefined" && !IS_LOGGED_IN) {
 
             window.location.href =
-                "database/index.php?notice=login-first";
+                document.getElementById("bookingForm").dataset.loginUrl;
 
             return;
 

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PICKLE | Log In / Sign Up</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&amp;family=Alike+Angular&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ asset('auth.css') }}">
+
+</head>
+
+<body>
+
+<div class="auth-wrap">
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash {{ label }}" id="flashMsg">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+
+    {% if notice == 'login-first' %}
+
+        <p class="auth-alert error">
+            Please log in first to book a court. 🏓
+        </p>
+
+    {% elseif notice == 'login-event' %}
+
+        <p class="auth-alert error">
+            Please log in first to join events. 🏓
+        </p>
+
+    {% endif %}
+
+
+    <div class="auth-card auth-center">
+
+        <a href="{{ path('app_home') }}" class="auth-logo">
+            <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="auth-logo-img">
+        </a>
+
+
+        <div class="auth-tabs">
+
+            <button type="button"
+                    class="auth-tab{{ activeTab == 'login' ? ' active' : '' }}"
+                    data-tab="login">
+                LOG IN
+            </button>
+
+            <button type="button"
+                    class="auth-tab{{ activeTab == 'register' ? ' active' : '' }}"
+                    data-tab="register">
+                SIGN UP
+            </button>
+
+        </div>
+
+
+        <div class="tab-panel{{ activeTab == 'login' ? ' active' : '' }}"
+             id="login-panel">
+
+            <form method="POST" action="{{ path('app_login') }}">
+
+                <input type="hidden" name="action" value="login">
+
+                <div class="form-group">
+
+                    <label>USERNAME OR EMAIL</label>
+
+                    <input type="text"
+                           name="username"
+                           value="{{ loginIdentifier|default('') }}"
+                           placeholder="e.g. alex or alex@gmail.com">
+
+                    {% if errors.login_id is defined %}
+                        <p class="field-error">{{ errors.login_id }}</p>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>PASSWORD</label>
+
+                    <input type="password"
+                           name="password"
+                           placeholder="Your password">
+
+                    {% if errors.login_password is defined %}
+                        <p class="field-error">{{ errors.login_password }}</p>
+                    {% endif %}
+
+                </div>
+
+
+                <label class="show-pass">
+                    <input type="checkbox"> Show password
+                </label>
+
+
+                <button type="submit" class="auth-btn">
+                    LOG IN
+                </button>
+
+            </form>
+
+
+            <p class="auth-switch">
+                New to PICKLE?
+                <a href="#" class="switch-link" data-tab="register">Create an account</a>
+            </p>
+
+        </div>
+
+
+        <div class="tab-panel{{ activeTab == 'register' ? ' active' : '' }}"
+             id="register-panel">
+
+            <form method="POST" action="{{ path('app_register') }}">
+
+                <input type="hidden" name="action" value="register">
+
+                <div class="form-group">
+
+                    <label>USERNAME</label>
+
+                    <input type="text"
+                           name="username"
+                           value="{{ username|default('') }}"
+                           placeholder="3-20 letters, numbers, underscores">
+
+                    {% if errors.username is defined %}
+                        <p class="field-error">{{ errors.username }}</p>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>EMAIL</label>
+
+                    <input type="email"
+                           name="email"
+                           value="{{ email|default('') }}"
+                           placeholder="you@example.com">
+
+                    {% if errors.email is defined %}
+                        <p class="field-error">{{ errors.email }}</p>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>PASSWORD</label>
+
+                    <input type="password"
+                           name="password"
+                           placeholder="At least 8 characters">
+
+                    {% if errors.password is defined %}
+                        <p class="field-error">{{ errors.password }}</p>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>CONFIRM PASSWORD</label>
+
+                    <input type="password"
+                           name="confirm"
+                           placeholder="Repeat your password">
+
+                    {% if errors.confirm is defined %}
+                        <p class="field-error">{{ errors.confirm }}</p>
+                    {% endif %}
+
+                </div>
+
+
+                <label class="show-pass">
+                    <input type="checkbox"> Show password
+                </label>
+
+
+                <button type="submit" class="auth-btn">
+                    CREATE ACCOUNT
+                </button>
+
+            </form>
+
+
+            <p class="auth-switch">
+                Already have an account?
+                <a href="#" class="switch-link" data-tab="login">Log in instead</a>
+            </p>
+
+        </div>
+
+
+        <a class="auth-back" href="{{ path('app_home') }}">
+            ← BACK TO HOMEPAGE
+        </a>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    const tabs = document.querySelectorAll(".auth-tab");
+    const panels = document.querySelectorAll(".tab-panel");
+    const switchLinks = document.querySelectorAll(".switch-link");
+
+    function openTab(name) {
+
+        tabs.forEach(function (tab) {
+            tab.classList.toggle("active", tab.dataset.tab === name);
+        });
+
+        panels.forEach(function (panel) {
+            panel.classList.toggle("active", panel.id === name + "-panel");
+        });
+
+    }
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+            openTab(tab.dataset.tab);
+        });
+    });
+
+    switchLinks.forEach(function (link) {
+        link.addEventListener("click", function (event) {
+            event.preventDefault();
+            openTab(link.dataset.tab);
+        });
+    });
+
+
+    document.querySelectorAll(".show-pass input").forEach(function (box) {
+
+        box.addEventListener("change", function () {
+
+            const form = box.closest("form");
+
+            form.querySelectorAll('input[type="password"]').forEach(function (input) {
+                input.type = box.checked ? "text" : "password";
+            });
+
+        });
+
+    });
+
+</script>
+
+</body>
+</html>
