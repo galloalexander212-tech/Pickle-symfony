@@ -1,0 +1,12 @@
+{% set avatarSize = size|default(30) %}
+{% set avatarColors = ['#2ecc71', '#ff6b9d', '#3b82f6', '#8e44ad', '#b8a1e3', '#1b4332'] %}
+{% set avatarBackground = app.user.avatarColor ?: avatarColors[app.user.id % 6] %}
+{% if app.user.avatar %}
+    <img class="nav-avatar" src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}" alt="{{ app.user.username }} avatar"
+         style="width: {{ avatarSize }}px; height: {{ avatarSize }}px; object-fit: cover; border-radius: 50%; flex-shrink: 0;">
+{% else %}
+    <span class="nav-avatar"
+          style="display: inline-flex; align-items: center; justify-content: center; width: {{ avatarSize }}px; height: {{ avatarSize }}px; border-radius: 50%; flex-shrink: 0; background-color: {{ avatarBackground }}; color: #ffffff; font-size: 13px; font-weight: 700; letter-spacing: 0;">
+        {{- app.user.username|slice(0, 1)|upper -}}
+    </span>
+{% endif %}

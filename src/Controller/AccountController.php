@@ -7,7 +7,10 @@ use App\Entity\EventJoin;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -160,4 +163,103 @@ class AccountController extends AbstractController
             'email' => $email,
         ]);
     }
+
+    #[Route('/account/avatar', name: 'app_account_avatar', methods: ['POST'])]
+    public function updateAvatar(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        #[Autowire('%kernel.project_dir%')] string $projectDir,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        if (!$this->isCsrfTokenValid('account_avatar', (string) $request->request->get('_token', ''))) {
+            $this->addFlash('error', 'The avatar form expired. Please try again.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $upload = $request->files->get('avatar');
+        if (!$upload instanceof UploadedFile || !$upload->isValid() || ($upload->getSize() ?? PHP_INT_MAX) > 2 * 1024 * 1024) {
+            $this->addFlash('error', 'Choose a valid image no larger than 2 MB.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $extensions = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+        ];
+        $mimeType = $upload->getMimeType();
+        if (!isset($extensions[$mimeType])) {
+            $this->addFlash('error', 'Avatar must be a JPG, PNG, or WEBP image.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $directory = $projectDir . '/public/uploads/avatars';
+        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+            $this->addFlash('error', 'The avatar could not be saved. Please try again later.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $filename = bin2hex(random_bytes(16)) . '.' . $extensions[$mimeType];
+        try {
+            $upload->move($directory, $filename);
+        } catch (FileException) {
+            $this->addFlash('error', 'The avatar could not be saved. Please try again later.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $previousAvatar = $user->getAvatar();
+        $user->setAvatar($filename);
+        $entityManager->flush();
+
+        if ($previousAvatar !== null
+            && preg_match('/^[a-f0-9]{32}\.(jpg|png|webp)$/', $previousAvatar) === 1
+        ) {
+            $previousPath = $directory . '/' . $previousAvatar;
+            if (is_file($previousPath) && !unlink($previousPath)) {
+                throw new \RuntimeException('Unable to remove the previous avatar file.');
+            }
+        }
+
+        $this->addFlash('success', 'Avatar updated!');
+
+        return $this->redirectToRoute('app_account');
+    }
+
+    #[Route('/account/color', name: 'app_account_color', methods: ['POST'])]
+    public function updateAvatarColor(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $colors = ['#2ecc71', '#ff6b9d', '#3b82f6', '#8e44ad', '#b8a1e3', '#1b4332'];
+        $color = $request->request->get('avatar_color', '');
+        if (!$this->isCsrfTokenValid('account_color', (string) $request->request->get('_token', ''))) {
+            $this->addFlash('error', 'Choose a valid avatar color and try again.');
+
+            return $this->redirectToRoute('app_account');
+        }
+        if (!is_string($color) || !in_array($color, $colors, true)) {
+            $this->addFlash('error', 'Choose a valid avatar color and try again.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $user->setAvatarColor($color);
+        $entityManager->flush();
+        $this->addFlash('success', 'Avatar color updated!');
+
+        return $this->redirectToRoute('app_account');
+    }
+
 }

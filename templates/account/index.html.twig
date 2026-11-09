@@ -44,6 +44,41 @@
             Your PICKLE profile details.
         </p>
 
+        <h3 class="section-sub">
+            PROFILE
+        </h3>
+
+        <div class="profile-customization">
+            <div class="profile-avatar-preview">
+                {{ include('_avatar.html.twig', {size: 72}) }}
+            </div>
+
+            {% set avatarColors = ['#2ecc71', '#ff6b9d', '#3b82f6', '#8e44ad', '#b8a1e3', '#1b4332'] %}
+            {% set avatarLabels = ['green', 'pink', 'blue', 'purple', 'lavender', 'dark green'] %}
+            {% set selectedAvatarColor = user.avatarColor ?: avatarColors[user.id % 6] %}
+            <form method="POST" action="{{ path('app_account_avatar') }}" enctype="multipart/form-data" class="profile-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('account_avatar') }}">
+                <label for="avatar">PROFILE PICTURE</label>
+                <input type="file" id="avatar" name="avatar" accept=".jpg,.jpeg,.png,.webp">
+                <button type="submit" class="small-btn">UPLOAD AVATAR</button>
+            </form>
+
+            <form method="POST" action="{{ path('app_account_color') }}" class="profile-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('account_color') }}">
+                <label>AVATAR COLOR</label>
+                <div class="avatar-colors">
+                    {% for color in avatarColors %}
+                        <label class="avatar-color">
+                            <input type="radio" name="avatar_color" value="{{ color }}" aria-label="{{ avatarLabels[loop.index0] }}"
+                                {% if selectedAvatarColor == color %}checked{% endif %}>
+                            <span style="background-color: {{ color }}"></span>
+                        </label>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="small-btn">SAVE COLOR</button>
+            </form>
+
+        </div>
 
         <div class="profile-row">
             <span>USERNAME</span>

@@ -77,7 +77,7 @@ final class LoginFormAuthenticator extends AbstractAuthenticator
         }
 
         if ($user instanceof User) {
-            return new RedirectResponse($this->urlGenerator->generate('app_account'));
+            return new RedirectResponse($this->urlGenerator->generate('app_home'));
         }
 
         return new RedirectResponse($this->urlGenerator->generate('app_home'));

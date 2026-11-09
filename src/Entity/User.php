@@ -35,6 +35,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'locked_until', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $lockedUntil = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatar = null;
+
+    #[ORM\Column(length: 7, nullable: true)]
+    private ?string $avatarColor = null;
+
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
@@ -155,6 +161,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLockedUntil(?\DateTimeImmutable $lockedUntil): static
     {
         $this->lockedUntil = $lockedUntil;
+
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): static
+    {
+        $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    public function getAvatarColor(): ?string
+    {
+        return $this->avatarColor;
+    }
+
+    public function setAvatarColor(?string $avatarColor): static
+    {
+        $this->avatarColor = $avatarColor;
 
         return $this;
     }
