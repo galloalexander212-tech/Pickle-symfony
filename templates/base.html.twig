@@ -44,7 +44,7 @@
             {% if app.user %}
                 <a href="{{ path('app_account') }}" class="login-btn">HI, {{ app.user.username|upper }}</a>
             {% else %}
-                <a href="{{ path('app_login') }}" class="login-btn primary-btn">LOG IN</a>
+                <a href="{{ path('app_login') }}" class="login-btn">LOG IN / SIGN UP</a>
             {% endif %}
 
             <button class="menu-btn" id="menuBtn">&#9776;</button>
@@ -59,6 +59,9 @@
         <a href="{{ path('app_tournaments') }}">TOURNAMENTS</a>
         <a href="{{ path('app_about') }}">ABOUT US</a>
         <a href="{{ path('app_support') }}">CONTACT US</a>
+        {% if not app.user %}
+            <a href="{{ path('app_login') }}">LOG IN / SIGN UP</a>
+        {% endif %}
     </div>
 
     {% block body %}{% endblock %}
