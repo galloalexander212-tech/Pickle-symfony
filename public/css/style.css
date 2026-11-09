@@ -438,6 +438,17 @@ section {
     color: var(--dark-green);
 }
 
+.hero-buttons .secondary-btn:hover {
+
+    background: var(--lime);
+
+    border-color: var(--lime);
+
+    color: #1d250f;
+
+    transform: translateY(-2px);
+}
+
 
 /* =====================================
    BUTTONS
