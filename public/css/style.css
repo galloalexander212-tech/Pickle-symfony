@@ -545,6 +545,13 @@ section {
     border-right: 1px solid var(--border);
 }
 
+.quick-item-link {
+
+    color: inherit;
+
+    text-decoration: none;
+}
+
 .quick-item:last-child {
 
     border-right: none;

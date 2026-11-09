@@ -9,7 +9,7 @@
         <h1>BOOK.<br>COMPETE.<br><span>REPEAT.</span></h1>
         <p class="hero-description">Book pickleball courts, join open plays, and compete in tournaments — all in one place.</p>
         <div class="hero-buttons">
-            <a href="#courts" class="primary-btn" id="heroBookBtn">BOOK A COURT</a>
+            <a href="{{ app.user ? path('app_courts') : path('app_login', {notice: 'login-first'}) }}" class="primary-btn">BOOK A COURT</a>
             <a href="#openplays" class="secondary-btn">BROWSE OPEN PLAYS</a>
         </div>
     </div>
@@ -19,7 +19,7 @@
 <section class="quick-options">
     <div class="quick-container">
 
-        <div class="quick-item">
+        <a href="{{ app.user ? path('app_courts') : path('app_login', {notice: 'login-first'}) }}" class="quick-item quick-item-link">
             <div class="quick-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M8 2v4"></path><path d="M16 2v4"></path>
@@ -30,7 +30,7 @@
                 <h3>BOOK COURTS</h3>
                 <p>Reserve your preferred court anytime, anywhere.</p>
             </div>
-        </div>
+        </a>
 
         <div class="quick-item">
             <div class="quick-icon">

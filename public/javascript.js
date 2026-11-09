@@ -286,39 +286,6 @@ if (closeModal && bookingModal) {
 
 
 /* =====================================
-   HERO BOOK BUTTON
-===================================== */
-
-const heroBookBtn =
-    document.getElementById("heroBookBtn");
-
-if (heroBookBtn) {
-
-    heroBookBtn.addEventListener("click", function (event) {
-
-        event.preventDefault();
-
-        if (typeof IS_LOGGED_IN !== "undefined" && !IS_LOGGED_IN) {
-
-            window.location.href =
-                document.getElementById("bookingForm").dataset.loginUrl;
-
-            return;
-
-        }
-
-        if (courtSelect) {
-            courtSelect.value = "";
-        }
-
-        openBookingModal();
-
-    });
-
-}
-
-
-/* =====================================
    CARD BOOK BUTTONS
 ===================================== */
 
