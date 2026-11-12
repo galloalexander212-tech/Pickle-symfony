@@ -22,6 +22,9 @@ class EventJoin
     #[ORM\JoinColumn(name: 'user_id', nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
+    #[ORM\Column(length: 20, options: ['default' => 'pending'])]
+    private string $status = 'pending';
+
     #[ORM\Column(name: 'joined_at', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $joinedAt;
 
@@ -55,6 +58,18 @@ class EventJoin
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }

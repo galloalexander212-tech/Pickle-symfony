@@ -36,6 +36,9 @@ class Event
     #[ORM\Column(name: 'max_players', options: ['default' => 8])]
     private int $maxPlayers = 8;
 
+    #[ORM\Column(name: 'entrance_fee', type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?string $entranceFee = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $prize = null;
 
@@ -144,6 +147,18 @@ class Event
     public function setMaxPlayers(int $maxPlayers): static
     {
         $this->maxPlayers = $maxPlayers;
+
+        return $this;
+    }
+
+    public function getEntranceFee(): ?string
+    {
+        return $this->entranceFee;
+    }
+
+    public function setEntranceFee(?string $entranceFee): static
+    {
+        $this->entranceFee = $entranceFee;
 
         return $this;
     }

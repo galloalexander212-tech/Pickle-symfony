@@ -58,8 +58,16 @@ final class LoginFormAuthenticator extends AbstractAuthenticator
 
         return new Passport(
             new UserBadge($identifier, function (string $userIdentifier): UserInterface {
-                return $this->users->findOneByUsernameOrEmail($userIdentifier)
+                $user = $this->users->findOneByUsernameOrEmail($userIdentifier)
                     ?? throw new CustomUserMessageAuthenticationException('Wrong username/email or password.');
+
+                if ($user->getAccountStatus() === 'disabled') {
+                    throw new CustomUserMessageAuthenticationException(
+                        'This account is disabled. Please contact an administrator.',
+                    );
+                }
+
+                return $user;
             }),
             new CustomCredentials(
                 fn (mixed $credentials, UserInterface $user): bool => $this->checkCredentials((string) $credentials, $user),

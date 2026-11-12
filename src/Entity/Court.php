@@ -24,6 +24,13 @@ class Court
     #[ORM\Column(type: 'decimal', precision: 2, scale: 1, options: ['default' => '4.5'])]
     private string $rating = '4.5';
 
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?string $price = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'owner_id', nullable: true, onDelete: 'SET NULL')]
+    private ?User $owner = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
@@ -77,6 +84,30 @@ class Court
     public function setRating(string $rating): static
     {
         $this->rating = $rating;
+
+        return $this;
+    }
+
+    public function getPrice(): ?string
+    {
+        return $this->price;
+    }
+
+    public function setPrice(?string $price): static
+    {
+        $this->price = $price;
+
+        return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }

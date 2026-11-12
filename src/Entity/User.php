@@ -41,8 +41,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 7, nullable: true)]
     private ?string $avatarColor = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable', nullable: true, options: ['default' => 'CURRENT_TIMESTAMP'])]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(name: 'account_status', length: 20, options: ['default' => 'active'])]
+    private string $accountStatus = 'active';
 
     /** @var Collection<int, Booking> */
     #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'user')]
@@ -129,7 +132,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return $this->role === 'admin' ? ['ROLE_ADMIN'] : ['ROLE_USER'];
+        $roles = ['ROLE_USER'];
+
+        if ($this->role === 'admin') {
+            $roles[] = 'ROLE_ADMIN';
+        } elseif ($this->role === 'staff') {
+            $roles[] = 'ROLE_STAFF';
+        }
+
+        return $roles;
     }
 
     public function getUserIdentifier(): string
@@ -189,14 +200,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function setCreatedAt(?\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getAccountStatus(): string
+    {
+        return $this->accountStatus;
+    }
+
+    public function setAccountStatus(string $accountStatus): static
+    {
+        $this->accountStatus = $accountStatus;
 
         return $this;
     }
