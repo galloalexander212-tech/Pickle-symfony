@@ -1804,6 +1804,18 @@ footer {
     background: #c0392b;
 }
 
+.flash.success {
+
+    background: #24633d;
+}
+
+.site-flashes {
+
+    position: relative;
+
+    z-index: 2000;
+}
+
 .flash.hide {
 
     opacity: 0;
@@ -1811,6 +1823,65 @@ footer {
     transition: 0.5s;
 
     pointer-events: none;
+}
+
+.error-page {
+
+    min-height: 60vh;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 48px 20px;
+
+    color: #f4f6f1;
+
+    text-align: center;
+}
+
+.error-page .error-code {
+
+    color: #9bea00;
+
+    font: 700 clamp(64px, 12vw, 120px) "Alef", sans-serif;
+
+    line-height: 1;
+}
+
+.error-page h1 {
+
+    margin: 16px 0 8px;
+
+    font: 700 28px "Alef", sans-serif;
+}
+
+.error-page p:not(.error-code) {
+
+    color: #c6ccc4;
+}
+
+.error-home-button {
+
+    display: inline-block;
+
+    margin-top: 24px;
+
+    padding: 12px 20px;
+
+    border-radius: 6px;
+
+    background: #9bea00;
+
+    color: #171d18;
+
+    font: 700 12px "Alef", sans-serif;
+
+    text-decoration: none;
 }
 
 

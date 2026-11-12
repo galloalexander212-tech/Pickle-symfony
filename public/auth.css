@@ -79,7 +79,116 @@ h1, h2, h3, button, a, label {
 
 .auth-card.wide {
 
-    width: min(880px, 100%);
+    width: min(1120px, 100%);
+}
+
+.admin-stats {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+
+    gap: 12px;
+
+    margin: 24px 0;
+}
+
+.admin-stat {
+
+    padding: 18px;
+
+    border: 1px solid rgba(155, 234, 0, 0.18);
+
+    border-radius: 10px;
+
+    background: rgba(155, 234, 0, 0.06);
+}
+
+.admin-stat strong {
+
+    display: block;
+
+    color: var(--lime);
+
+    font: 700 28px "Alef", sans-serif;
+}
+
+.admin-stat span {
+
+    color: #d3d8d1;
+
+    font: 700 11px "Alef", sans-serif;
+
+    letter-spacing: 0.06em;
+}
+
+.admin-form-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+    gap: 12px;
+}
+
+.admin-form-grid .form-group {
+
+    margin-bottom: 12px;
+}
+
+.admin-form-grid select {
+
+    width: 100%;
+
+    min-height: 44px;
+
+    padding: 10px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 6px;
+
+    background: white;
+}
+
+.badge.staff {
+
+    background: rgba(80, 160, 255, 0.16);
+
+    color: #b6d8ff;
+}
+
+.badge.admin {
+
+    color: white;
+}
+
+.badge.disabled {
+
+    background: rgba(255, 90, 70, 0.16);
+
+    color: #ffc0b7;
+}
+
+.badge.active {
+
+    background: rgba(155, 234, 0, 0.12);
+
+    color: var(--lime);
+}
+
+.admin-row-actions {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 6px;
+}
+
+.admin-row-actions form {
+
+    display: inline;
 }
 
 

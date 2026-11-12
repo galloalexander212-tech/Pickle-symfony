@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}403 — Access Denied | PICKLE{% endblock %}
+
+{% block body %}
+    <main class="error-page">
+        <h1>403 — Access Denied</h1>
+        <p>You do not have permission to view this page.</p>
+        <a href="{{ path('app_home') }}" class="error-home-button">BACK TO HOMEPAGE</a>
+    </main>
+{% endblock %}

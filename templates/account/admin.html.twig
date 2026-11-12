@@ -1,261 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>PICKLE | Admin Panel</title>
-
+    <title>PICKLE | Admin Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&amp;display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="{{ asset('auth.css') }}">
-
 </head>
-
 <body>
-
 <div class="auth-wrap">
-
     {% for label, messages in app.flashes %}
         {% for message in messages %}
             <div class="flash {{ label }}">{{ message }}</div>
         {% endfor %}
     {% endfor %}
 
-
-    <div class="auth-card wide">
-
+    <main class="auth-card wide">
         <div class="admin-head">
-
             <div>
-
                 <a href="{{ path('app_home') }}" class="auth-logo">
                     <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="auth-logo-img">
                 </a>
-
-                <h2 class="auth-title">
-                    Admin Panel
-                </h2>
-
-                <p class="auth-sub">
-                    Logged in as {{ admin.username }} — manage all PICKLE players.
-                </p>
-
+                <h1 class="auth-title">Admin Dashboard</h1>
+                <p class="auth-sub">Overview of PICKLE accounts and activity.</p>
             </div>
-
-
             <div class="admin-top-actions">
-
-                <a href="{{ path('app_admin_courts') }}" class="small-btn">
-                    MANAGE COURTS
-                </a>
-
-                <a href="{{ path('app_admin_events') }}" class="small-btn">
-                    MANAGE EVENTS
-                </a>
-
-                <a href="{{ path('app_account') }}" class="small-btn">
-                    MY ACCOUNT
-                </a>
-
-                <a href="{{ path('app_logout') }}" class="small-btn danger">
-                    LOG OUT
-                </a>
-
+                <a href="{{ path('app_admin_users') }}" class="small-btn">MANAGE USERS</a>
+                <a href="{{ path('app_admin_courts') }}" class="small-btn">MANAGE COURTS</a>
+                <a href="{{ path('app_admin_events') }}" class="small-btn">MANAGE EVENTS</a>
+                <a href="{{ path('app_account') }}" class="small-btn">MY ACCOUNT</a>
+                <a href="{{ path('app_logout') }}" class="small-btn danger">LOG OUT</a>
             </div>
-
         </div>
 
+        <section class="admin-stats" aria-label="Site totals">
+            <div class="admin-stat"><strong>{{ stats.users }}</strong><span>TOTAL USERS</span></div>
+            <div class="admin-stat"><strong>{{ stats.staff }}</strong><span>TOTAL STAFF</span></div>
+            <div class="admin-stat"><strong>{{ stats.admins }}</strong><span>TOTAL ADMINS</span></div>
+            <div class="admin-stat"><strong>{{ stats.courts }}</strong><span>TOTAL COURTS</span></div>
+            <div class="admin-stat"><strong>{{ stats.events }}</strong><span>TOTAL EVENTS</span></div>
+            <div class="admin-stat"><strong>{{ stats.bookings }}</strong><span>TOTAL BOOKINGS</span></div>
+            <div class="admin-stat"><strong>{{ stats.pendingBookings }}</strong><span>BOOKINGS AWAITING PAYMENT CLAIM</span></div>
+            <div class="admin-stat"><strong>{{ stats.pendingJoins }}</strong><span>JOINS AWAITING PAYMENT CLAIM</span></div>
+        </section>
 
-        <div class="table-wrap">
-
-            <table class="admin-table">
-
-                <thead>
-
-                    <tr>
-                        <th>ID</th>
-                        <th>USERNAME</th>
-                        <th>EMAIL</th>
-                        <th>ROLE</th>
-                        <th>BOOKINGS</th>
-                        <th>JOINED</th>
-                        <th>ACTIONS</th>
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {% for row in users %}
-
-                        <tr>
-
-                            <td>{{ row.id }}</td>
-
-                            <td>
-                                {{ row.username }}
-                                {{ row.id == admin.id ? ' (you)' : '' }}
-                            </td>
-
-                            <td>{{ row.email }}</td>
-
-                            <td>
-                                <span class="badge {{ row.role }}">
-                                    {{ row.role|upper }}
-                                </span>
-                            </td>
-
-                            <td>{{ row.totalBookings }}</td>
-
-                            <td>{{ row.createdAt|date('M j, Y') }}</td>
-
-                            <td>
-
-                                {% if row.id == admin.id %}
-
-                                    —
-
-                                {% else %}
-
-                                    <form method="POST" action="{{ path('app_admin') }}" class="row-form">
-                                        <input type="hidden" name="action" value="toggle">
-                                        <input type="hidden" name="user_id" value="{{ row.id }}">
-                                        <button type="submit" class="small-btn">
-                                            {{ row.role == 'admin' ? 'MAKE USER' : 'MAKE ADMIN' }}
-                                        </button>
-                                    </form>
-
-                                    {% if row.role == 'user' %}
-                                        <form method="POST" action="{{ path('app_admin') }}" class="row-form"
-                                              onsubmit="return confirm('Delete this user permanently?')">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="user_id" value="{{ row.id }}">
-                                            <button type="submit" class="small-btn danger">
-                                                DELETE
-                                            </button>
-                                        </form>
-                                    {% endif %}
-
-                                {% endif %}
-
-                            </td>
-
-                        </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-
-        <h3 class="admin-section-title">
-            ALL BOOKINGS
-        </h3>
-
+        <h2 class="admin-section-title">ALL BOOKINGS</h2>
         {% if bookings is empty %}
-
-            <p class="empty-note">
-                No bookings yet.
-            </p>
-
+            <p class="empty-note">No bookings yet.</p>
         {% else %}
-
             <div class="table-wrap">
-
                 <table class="admin-table">
-
                     <thead>
-
-                        <tr>
-                            <th>ID</th>
-                            <th>PLAYER</th>
-                            <th>COURT</th>
-                            <th>DATE</th>
-                            <th>TIME</th>
-                            <th>PLAYERS</th>
-                            <th>STATUS</th>
-                            <th>ACTIONS</th>
-                        </tr>
-
+                    <tr>
+                        <th>ID</th><th>PLAYER</th><th>COURT</th><th>DATE</th>
+                        <th>TIME</th><th>PLAYERS</th><th>STATUS</th><th>ACTIONS</th>
+                    </tr>
                     </thead>
-
                     <tbody>
-
-                        {% for booking in bookings %}
-
-                            <tr>
-
-                                <td>{{ booking.id }}</td>
-
-                                <td>{{ booking.user.username }}</td>
-
-                                <td>{{ booking.courtName }}</td>
-
-                                <td>{{ booking.bookingDate|date('M j, Y') }}</td>
-
-                                <td>{{ booking.bookingTime|date('g:i A') }}</td>
-
-                                <td>{{ booking.players }}</td>
-
-                                <td>
-                                    <span class="status {{ booking.status }}">
-                                        {{ booking.status|upper }}
-                                    </span>
-                                </td>
-
-                                <td>
-
+                    {% for booking in bookings %}
+                        <tr>
+                            <td>{{ booking.id }}</td>
+                            <td>{{ booking.user.username }}</td>
+                            <td>{{ booking.courtName }}</td>
+                            <td>{{ booking.bookingDate|date('M j, Y') }}</td>
+                            <td>{{ booking.bookingTime|date('g:i A') }}</td>
+                            <td>{{ booking.players }}</td>
+                            <td><span class="status {{ booking.status }}">{{ booking.status|upper }}</span></td>
+                            <td>
+                                <div class="admin-row-actions">
                                     {% if booking.status != 'cancelled' %}
                                         <form method="POST" action="{{ path('app_admin') }}" class="row-form">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('admin_booking_' ~ booking.id) }}">
                                             <input type="hidden" name="action" value="{{ booking.status == 'pending' ? 'confirm' : 'bcancel' }}">
                                             <input type="hidden" name="booking_id" value="{{ booking.id }}">
-                                            <button type="submit" class="small-btn">
-                                                {{ booking.status == 'pending' ? 'CONFIRM' : 'CANCEL' }}
-                                            </button>
+                                            <button type="submit" class="small-btn">{{ booking.status == 'pending' ? 'CONFIRM' : 'CANCEL' }}</button>
                                         </form>
                                     {% endif %}
-
                                     <form method="POST" action="{{ path('app_admin') }}" class="row-form"
                                           onsubmit="return confirm('Delete this booking permanently?')">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_booking_' ~ booking.id) }}">
                                         <input type="hidden" name="action" value="bdelete">
                                         <input type="hidden" name="booking_id" value="{{ booking.id }}">
-                                        <button type="submit" class="small-btn danger">
-                                            DELETE
-                                        </button>
+                                        <button type="submit" class="small-btn danger">DELETE</button>
                                     </form>
-
-                                </td>
-
-                            </tr>
-
-                        {% endfor %}
-
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
                     </tbody>
-
                 </table>
-
             </div>
-
         {% endif %}
 
-
-        <a class="auth-back" href="{{ path('app_home') }}">
-            ← BACK TO HOMEPAGE
-        </a>
-
-    </div>
-
+        <a class="auth-back" href="{{ path('app_home') }}">← BACK TO HOMEPAGE</a>
+    </main>
 </div>
-
 </body>
 </html>

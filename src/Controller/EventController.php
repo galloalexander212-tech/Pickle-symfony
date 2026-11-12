@@ -26,11 +26,15 @@ class EventController extends AbstractController
 
         $event = $entityManager->getRepository(Event::class)->find($id);
         if (!$event instanceof Event) {
+            $this->addFlash('error', 'That event could not be found.');
+
             return $this->redirectToRoute('app_home');
         }
 
         $anchor = $event->getType() === 'open_play' ? 'openPlayList' : 'tournamentList';
         if ($request->request->get('action', 'join') !== 'join') {
+            $this->addFlash('error', 'Invalid event action.');
+
             return $this->redirectToRoute('app_home');
         }
 
@@ -83,6 +87,8 @@ class EventController extends AbstractController
 
         $event = $entityManager->getRepository(Event::class)->find($id);
         if (!$event instanceof Event) {
+            $this->addFlash('error', 'That event could not be found.');
+
             return $this->redirectToRoute('app_home');
         }
 
@@ -95,6 +101,8 @@ class EventController extends AbstractController
             $entityManager->remove($join);
             $entityManager->flush();
             $this->addFlash('success', 'You left ' . $event->getTitle() . '.');
+        } else {
+            $this->addFlash('error', 'You have not joined ' . $event->getTitle() . '.');
         }
 
         return $this->redirectToRoute('app_account');

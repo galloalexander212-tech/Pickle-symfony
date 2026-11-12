@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Something Went Wrong | PICKLE{% endblock %}
+
+{% block body %}
+    <main class="error-page">
+        <p class="error-code">{{ status_code|default(500) }}</p>
+        <h1>Something went wrong</h1>
+        <p>Please try again or return to the homepage.</p>
+        <a href="{{ path('app_home') }}" class="error-home-button">BACK TO HOMEPAGE</a>
+    </main>
+{% endblock %}

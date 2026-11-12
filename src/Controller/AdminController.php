@@ -5,15 +5,20 @@ namespace App\Controller;
 use App\Entity\Booking;
 use App\Entity\Court;
 use App\Entity\Event;
+use App\Entity\EventJoin;
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_ADMIN')]
 class AdminController extends AbstractController
 {
     public function __construct(#[Autowire('%kernel.project_dir%')] private string $projectDir)
@@ -23,58 +28,41 @@ class AdminController extends AbstractController
     #[Route('/admin', name: 'app_admin', methods: ['GET', 'POST'])]
     public function dashboard(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $admin = $this->getAdminOrRedirect();
-        if ($admin instanceof Response) {
-            return $admin;
-        }
-
         if ($request->isMethod('POST')) {
             $action = (string) $request->request->get('action', '');
-            $userId = $request->request->getInt('user_id');
             $bookingId = $request->request->getInt('booking_id');
 
-            if ($userId > 0 && $userId !== $admin->getId()) {
-                $user = $entityManager->getRepository(User::class)->find($userId);
-
-                if ($action === 'toggle' && $user instanceof User) {
-                    $user->setRole($user->getRole() === 'admin' ? 'user' : 'admin');
-                    $entityManager->flush();
-                }
-
-                if ($action === 'delete' && $user instanceof User && $user->getRole() === 'user') {
-                    $entityManager->remove($user);
-                    $entityManager->flush();
-                }
-            }
-
             if ($bookingId > 0) {
-                $booking = $entityManager->getRepository(Booking::class)->find($bookingId);
+                if (!$this->isCsrfTokenValid('admin_booking_' . $bookingId, (string) $request->request->get('_token', ''))) {
+                    $this->addFlash('error', 'The booking action expired. Please try again.');
 
-                if ($booking instanceof Booking) {
-                    if ($action === 'confirm') {
-                        $booking->setStatus('confirmed');
-                        $entityManager->flush();
-                    } elseif ($action === 'bcancel') {
-                        $booking->setStatus('cancelled');
-                        $entityManager->flush();
-                    } elseif ($action === 'bdelete') {
-                        $entityManager->remove($booking);
-                        $entityManager->flush();
-                    }
+                    return $this->redirectToRoute('app_admin');
                 }
+
+                $booking = $entityManager->getRepository(Booking::class)->find($bookingId);
+                if (!$booking instanceof Booking) {
+                    $this->addFlash('error', 'Booking not found.');
+                } elseif ($action === 'confirm') {
+                    $booking->setStatus('confirmed');
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Booking confirmed.');
+                } elseif ($action === 'bcancel') {
+                    $booking->setStatus('cancelled');
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Booking cancelled.');
+                } elseif ($action === 'bdelete') {
+                    $entityManager->remove($booking);
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Booking deleted.');
+                } else {
+                    $this->addFlash('error', 'Invalid booking action.');
+                }
+            } else {
+                $this->addFlash('error', 'Invalid booking.');
             }
 
             return $this->redirectToRoute('app_admin');
         }
-
-        $users = $entityManager->createQueryBuilder()
-            ->select('user.id AS id, user.username AS username, user.email AS email, user.role AS role, user.createdAt AS createdAt, COUNT(booking.id) AS totalBookings')
-            ->from(User::class, 'user')
-            ->leftJoin('user.bookings', 'booking')
-            ->groupBy('user.id')
-            ->orderBy('user.createdAt', 'DESC')
-            ->getQuery()
-            ->getArrayResult();
 
         $bookings = $entityManager->getRepository(Booking::class)->createQueryBuilder('booking')
             ->addSelect('user')
@@ -84,20 +72,151 @@ class AdminController extends AbstractController
             ->getResult();
 
         return $this->render('account/admin.html.twig', [
-            'admin' => $admin,
-            'users' => $users,
+            'stats' => [
+                'users' => $entityManager->getRepository(User::class)->count([]),
+                'staff' => $entityManager->getRepository(User::class)->createQueryBuilder('user')
+                    ->select('COUNT(user.id)')
+                    ->where('user.role = :role')
+                    ->setParameter('role', 'staff')
+                    ->getQuery()
+                    ->getSingleScalarResult(),
+                'admins' => $entityManager->getRepository(User::class)->createQueryBuilder('user')
+                    ->select('COUNT(user.id)')
+                    ->where('user.role = :role')
+                    ->setParameter('role', 'admin')
+                    ->getQuery()
+                    ->getSingleScalarResult(),
+                'courts' => $entityManager->getRepository(Court::class)->count([]),
+                'events' => $entityManager->getRepository(Event::class)->count([]),
+                'bookings' => $entityManager->getRepository(Booking::class)->count([]),
+                'pendingBookings' => $entityManager->getRepository(Booking::class)->count(['status' => 'payment_claimed']),
+                'pendingJoins' => $entityManager->getRepository(EventJoin::class)->count(['status' => 'payment_claimed']),
+            ],
             'bookings' => $bookings,
+        ]);
+    }
+
+    #[Route('/admin/users', name: 'app_admin_users', methods: ['GET', 'POST'])]
+    public function users(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserRepository $users,
+        UserPasswordHasherInterface $passwordHasher,
+    ): Response {
+        /** @var User $admin */
+        $admin = $this->getUser();
+
+        if ($request->isMethod('POST')) {
+            $action = (string) $request->request->get('action', '');
+            $userId = $request->request->getInt('user_id');
+            $target = $userId > 0 ? $entityManager->getRepository(User::class)->find($userId) : null;
+            $tokenId = match ($action) {
+                'create' => 'admin_create_user',
+                'update' => 'admin_update_user_' . $userId,
+                'reset_password' => 'admin_reset_password_' . $userId,
+                'delete' => 'admin_delete_user_' . $userId,
+                'toggle_status' => 'admin_toggle_user_status_' . $userId,
+                default => '',
+            };
+
+            if ($tokenId === '' || !$this->isCsrfTokenValid($tokenId, (string) $request->request->get('_token', ''))) {
+                $this->addFlash('error', 'The account form expired or the action is invalid. Please try again.');
+
+                return $this->redirectToRoute('app_admin_users');
+            }
+
+            if ($action === 'create' || $action === 'update') {
+                $isNew = $action === 'create';
+                $user = $isNew ? new User() : $target;
+                if (!$user instanceof User) {
+                    $this->addFlash('error', 'Account not found.');
+
+                    return $this->redirectToRoute('app_admin_users');
+                }
+
+                $username = trim((string) $request->request->get('username', ''));
+                $email = trim((string) $request->request->get('email', ''));
+                $role = (string) $request->request->get('role', '');
+                $password = (string) $request->request->get('password', '');
+                $roleValues = ['ROLE_USER' => 'user', 'ROLE_STAFF' => 'staff', 'ROLE_ADMIN' => 'admin'];
+
+                if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
+                    $this->addFlash('error', 'Username must be 3-20 characters (letters, numbers and underscores only).');
+                } elseif (strlen($email) > 255 || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+                    $this->addFlash('error', 'Please enter a valid email address.');
+                } elseif (!isset($roleValues[$role])) {
+                    $this->addFlash('error', 'Pick a valid account role.');
+                } elseif (($duplicate = $users->findOneByUsernameOrEmail($username, $user->getId())) !== null) {
+                    $this->addFlash(
+                        'error',
+                        strcasecmp((string) $duplicate->getUsername(), $username) === 0
+                            ? 'That username is already taken.'
+                            : 'That email is already registered.',
+                    );
+                } elseif ($users->findOneByUsernameOrEmail($email, $user->getId()) !== null) {
+                    $this->addFlash('error', 'That email is already registered.');
+                } elseif ($isNew && ($password === '' || strlen($password) < 8 || strlen($password) > 100)) {
+                    $this->addFlash('error', 'Password must be between 8 and 100 characters.');
+                } else {
+                    $user->setUsername($username);
+                    $user->setEmail($email);
+                    $user->setRole($roleValues[$role]);
+                    if ($isNew) {
+                        $user->setPasswordHash($passwordHasher->hashPassword($user, $password));
+                        $entityManager->persist($user);
+                    }
+                    $entityManager->flush();
+                    $this->addFlash('success', $isNew ? 'Account created.' : 'Account updated.');
+                }
+            } elseif ($action === 'reset_password') {
+                $password = (string) $request->request->get('password', '');
+                if (!$target instanceof User) {
+                    $this->addFlash('error', 'Account not found.');
+                } elseif ($password === '' || strlen($password) < 8 || strlen($password) > 100) {
+                    $this->addFlash('error', 'Temporary password must be between 8 and 100 characters.');
+                } else {
+                    $target->setPasswordHash($passwordHasher->hashPassword($target, $password));
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Password reset successfully.');
+                }
+            } elseif ($action === 'toggle_status') {
+                if (!$target instanceof User) {
+                    $this->addFlash('error', 'Account not found.');
+                } elseif ($target->getId() === $admin->getId()) {
+                    $this->addFlash('error', 'You cannot disable your own account.');
+                } else {
+                    $target->setAccountStatus($target->getAccountStatus() === 'active' ? 'disabled' : 'active');
+                    $entityManager->flush();
+                    $this->addFlash('success', $target->getAccountStatus() === 'active' ? 'Account enabled.' : 'Account disabled.');
+                }
+            } elseif ($action === 'delete') {
+                if (!$target instanceof User) {
+                    $this->addFlash('error', 'Account not found.');
+                } elseif ($target->getId() === $admin->getId()) {
+                    $this->addFlash('error', 'You cannot delete your own account.');
+                } else {
+                    $entityManager->remove($target);
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Account deleted.');
+                }
+            }
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $editId = $request->query->getInt('edit');
+        $editUser = $editId > 0 ? $entityManager->getRepository(User::class)->find($editId) : null;
+
+        return $this->render('account/users.html.twig', [
+            'admin' => $admin,
+            'users' => $entityManager->getRepository(User::class)->findBy([], ['createdAt' => 'DESC', 'id' => 'DESC']),
+            'editUser' => $editUser,
         ]);
     }
 
     #[Route('/admin/courts', name: 'app_admin_courts', methods: ['GET', 'POST'])]
     public function courts(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $admin = $this->getAdminOrRedirect();
-        if ($admin instanceof Response) {
-            return $admin;
-        }
-
         $errors = [];
         $courtId = $request->query->getInt('edit');
         if ($request->isMethod('POST')) {
@@ -198,11 +317,6 @@ class AdminController extends AbstractController
     #[Route('/admin/events', name: 'app_admin_events', methods: ['GET', 'POST'])]
     public function events(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $admin = $this->getAdminOrRedirect();
-        if ($admin instanceof Response) {
-            return $admin;
-        }
-
         $errors = [];
         $eventId = $request->query->getInt('edit');
         if ($request->isMethod('POST')) {
@@ -316,19 +430,6 @@ class AdminController extends AbstractController
             'errors' => $errors,
             'values' => $values,
         ]);
-    }
-
-    private function getAdminOrRedirect(): User|Response
-    {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            return $this->redirectToRoute('app_login');
-        }
-        if (!$user->isAdmin()) {
-            return $this->redirectToRoute('app_account');
-        }
-
-        return $user;
     }
 
     private function storeImage(UploadedFile $upload, string $folder): string|false|null

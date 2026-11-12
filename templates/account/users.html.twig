@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PICKLE | Admin Users</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('auth.css') }}">
+</head>
+<body>
+<div class="auth-wrap">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash {{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    <main class="auth-card wide">
+        <div class="admin-head">
+            <div>
+                <a href="{{ path('app_home') }}" class="auth-logo">
+                    <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="auth-logo-img">
+                </a>
+                <h1 class="auth-title">Manage Users</h1>
+                <p class="auth-sub">Create accounts and manage roles, access, and passwords.</p>
+            </div>
+            <div class="admin-top-actions">
+                <a href="{{ path('app_admin') }}" class="small-btn">DASHBOARD</a>
+                <a href="{{ path('app_account') }}" class="small-btn">MY ACCOUNT</a>
+            </div>
+        </div>
+
+        {% if editUser is null %}
+            <h2 class="admin-section-title">CREATE ACCOUNT</h2>
+            <form method="POST" action="{{ path('app_admin_users') }}">
+                <input type="hidden" name="action" value="create">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_create_user') }}">
+                <div class="admin-form-grid">
+                    <div class="form-group">
+                        <label for="new-username">USERNAME</label>
+                        <input id="new-username" type="text" name="username" minlength="3" maxlength="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-email">EMAIL</label>
+                        <input id="new-email" type="email" name="email" maxlength="255" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">PASSWORD</label>
+                        <input id="new-password" type="password" name="password" minlength="8" maxlength="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-role">ROLE</label>
+                        <select id="new-role" name="role" required>
+                            <option value="ROLE_USER">USER</option>
+                            <option value="ROLE_STAFF">STAFF</option>
+                            <option value="ROLE_ADMIN">ADMIN</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="auth-btn inline">CREATE ACCOUNT</button>
+            </form>
+        {% else %}
+            <h2 class="admin-section-title">EDIT {{ editUser.username|upper }}</h2>
+            <form method="POST" action="{{ path('app_admin_users') }}">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="user_id" value="{{ editUser.id }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_update_user_' ~ editUser.id) }}">
+                <div class="admin-form-grid">
+                    <div class="form-group">
+                        <label for="edit-username">USERNAME</label>
+                        <input id="edit-username" type="text" name="username" value="{{ editUser.username }}" minlength="3" maxlength="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-email">EMAIL</label>
+                        <input id="edit-email" type="email" name="email" value="{{ editUser.email }}" maxlength="255" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-role">ROLE</label>
+                        <select id="edit-role" name="role" required>
+                            <option value="ROLE_USER" {{ editUser.role == 'user' ? 'selected' : '' }}>USER</option>
+                            <option value="ROLE_STAFF" {{ editUser.role == 'staff' ? 'selected' : '' }}>STAFF</option>
+                            <option value="ROLE_ADMIN" {{ editUser.role == 'admin' ? 'selected' : '' }}>ADMIN</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="auth-btn inline">SAVE ACCOUNT</button>
+                <a href="{{ path('app_admin_users') }}" class="small-btn">CANCEL</a>
+            </form>
+
+            <div class="auth-divider"></div>
+            <h3 class="section-sub">RESET PASSWORD</h3>
+            <form method="POST" action="{{ path('app_admin_users') }}">
+                <input type="hidden" name="action" value="reset_password">
+                <input type="hidden" name="user_id" value="{{ editUser.id }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_reset_password_' ~ editUser.id) }}">
+                <div class="admin-form-grid">
+                    <div class="form-group">
+                        <label for="temporary-password">NEW TEMPORARY PASSWORD</label>
+                        <input id="temporary-password" type="password" name="password" minlength="8" maxlength="100" required>
+                    </div>
+                </div>
+                <button type="submit" class="auth-btn outline">RESET PASSWORD</button>
+            </form>
+        {% endif %}
+
+        <div class="auth-divider"></div>
+        <h2 class="admin-section-title">ALL ACCOUNTS</h2>
+        <div class="table-wrap">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>USERNAME</th>
+                    <th>EMAIL</th>
+                    <th>ROLE</th>
+                    <th>DATE CREATED</th>
+                    <th>STATUS</th>
+                    <th>ACTIONS</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for account in users %}
+                    <tr>
+                        <td>{{ account.username }}{{ account.id == admin.id ? ' (you)' : '' }}</td>
+                        <td>{{ account.email }}</td>
+                        <td><span class="badge {{ account.role }}">{{ account.role|upper }}</span></td>
+                        <td>{{ account.createdAt ? account.createdAt|date('M j, Y') : '—' }}</td>
+                        <td><span class="badge {{ account.accountStatus }}">{{ account.accountStatus|upper }}</span></td>
+                        <td>
+                            <div class="admin-row-actions">
+                                <a href="{{ path('app_admin_users', {edit: account.id}) }}" class="small-btn">EDIT</a>
+                                {% if account.id != admin.id %}
+                                    <form method="POST" action="{{ path('app_admin_users') }}">
+                                        <input type="hidden" name="action" value="toggle_status">
+                                        <input type="hidden" name="user_id" value="{{ account.id }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_toggle_user_status_' ~ account.id) }}">
+                                        <button type="submit" class="small-btn">{{ account.accountStatus == 'active' ? 'DISABLE' : 'ENABLE' }}</button>
+                                    </form>
+                                    <form method="POST" action="{{ path('app_admin_users') }}"
+                                          onsubmit="return confirm('Delete this account permanently?')">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="user_id" value="{{ account.id }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_delete_user_' ~ account.id) }}">
+                                        <button type="submit" class="small-btn danger">DELETE</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6">No accounts found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <a class="auth-back" href="{{ path('app_admin') }}">← BACK TO DASHBOARD</a>
+    </main>
+</div>
+</body>
+</html>
