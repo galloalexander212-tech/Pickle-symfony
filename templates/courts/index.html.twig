@@ -173,6 +173,9 @@
                             <h3>{{ c.name }}</h3>
 
                             <p class="court-location">◉ {{ c.location }}</p>
+                            {% if c.price is not null %}
+                                <p class="court-price">₱{{ c.price|number_format(2) }} / hour</p>
+                            {% endif %}
 
 
                             {% if date != '' %}

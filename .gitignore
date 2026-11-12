@@ -7,6 +7,12 @@
 /public/bundles/
 /public/uploads/avatars/*
 !/public/uploads/avatars/.gitkeep
+/public/uploads/qr/*
+!/public/uploads/qr/.gitkeep
+/public/uploads/courts/*
+!/public/uploads/courts/.gitkeep
+/public/uploads/events/*
+!/public/uploads/events/.gitkeep
 /var/
 /vendor/
 ###< symfony/framework-bundle ###

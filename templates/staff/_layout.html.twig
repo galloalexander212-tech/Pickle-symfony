@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('auth.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="auth-wrap">
+    <div class="auth-card wide">
+        <div class="admin-head">
+            <div>
+                <a href="{{ path('app_home') }}" class="auth-logo">
+                    <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="auth-logo-img">
+                </a>
+                <h2 class="auth-title">{% block staff_heading %}Staff dashboard{% endblock %}</h2>
+                <p class="auth-sub">Manage your courts, events, and registrations.</p>
+            </div>
+            <nav class="admin-top-actions" aria-label="Staff navigation">
+                <a href="{{ path('app_staff') }}" class="small-btn">DASHBOARD</a>
+                <a href="{{ path('app_staff_courts') }}" class="small-btn">MY COURTS</a>
+                <a href="{{ path('app_staff_events') }}" class="small-btn">MY EVENTS</a>
+                <a href="{{ path('app_staff_bookings') }}" class="small-btn">BOOKINGS</a>
+                <a href="{{ path('app_account') }}" class="small-btn">MY ACCOUNT</a>
+                <a href="{{ path('app_logout') }}" class="small-btn danger">LOG OUT</a>
+            </nav>
+        </div>
+
+        {% block staff_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

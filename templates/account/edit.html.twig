@@ -45,122 +45,71 @@
         </p>
 
 
-        <h3 class="section-sub">
-            ACCOUNT DETAILS
-        </h3>
-
-        <form method="POST" action="{{ path('app_account_edit') }}">
+        <form method="POST" action="{{ path('app_account_edit') }}" class="layout-form">
 
             <input type="hidden" name="action" value="profile">
 
-            <div class="form-group">
-
-                <label>USERNAME</label>
-
-                <input type="text"
-                       name="username"
-                       value="{{ username }}">
-
-                {% if errors.username is defined %}
-                    <p class="field-error">{{ errors.username }}</p>
-                {% endif %}
-
+            <section class="form-section">
+                <h3 class="form-section-title">ACCOUNT DETAILS</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>USERNAME</label>
+                        <input type="text" name="username" value="{{ username }}">
+                        {% if errors.username is defined %}<p class="field-error">{{ errors.username }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>EMAIL</label>
+                        <input type="email" name="email" value="{{ email }}">
+                        {% if errors.email is defined %}<p class="field-error">{{ errors.email }}</p>{% endif %}
+                    </div>
+                </div>
+            </section>
+            <div class="form-actions">
+                <button type="submit" class="auth-btn form-primary">SAVE CHANGES</button>
             </div>
-
-
-            <div class="form-group">
-
-                <label>EMAIL</label>
-
-                <input type="email"
-                       name="email"
-                       value="{{ email }}">
-
-                {% if errors.email is defined %}
-                    <p class="field-error">{{ errors.email }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <button type="submit" class="auth-btn">
-                SAVE CHANGES
-            </button>
 
         </form>
 
 
         <div class="auth-divider"></div>
 
-
-        <h3 class="section-sub">
-            CHANGE PASSWORD
-        </h3>
-
-        <form method="POST" action="{{ path('app_account_edit') }}">
+        <form method="POST" action="{{ path('app_account_edit') }}" class="layout-form">
 
             <input type="hidden" name="action" value="password">
 
-            <div class="form-group">
-
-                <label>CURRENT PASSWORD</label>
-
-                <input type="password"
-                       name="current_password"
-                       placeholder="Your current password">
-
-                {% if errors.current_password is defined %}
-                    <p class="field-error">{{ errors.current_password }}</p>
-                {% endif %}
-
+            <section class="form-section">
+                <h3 class="form-section-title">CHANGE PASSWORD</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>CURRENT PASSWORD</label>
+                        <input type="password" name="current_password" placeholder="Your current password">
+                        {% if errors.current_password is defined %}<p class="field-error">{{ errors.current_password }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>NEW PASSWORD</label>
+                        <input type="password" name="new_password" placeholder="At least 8 characters">
+                        {% if errors.new_password is defined %}<p class="field-error">{{ errors.new_password }}</p>{% endif %}
+                    </div>
+                    <div class="form-group field-full">
+                        <label>CONFIRM NEW PASSWORD</label>
+                        <input type="password" name="confirm_password" placeholder="Repeat your new password">
+                        {% if errors.confirm_password is defined %}<p class="field-error">{{ errors.confirm_password }}</p>{% endif %}
+                    </div>
+                </div>
+                <label class="show-pass">
+                    <input type="checkbox"> Show password
+                </label>
+            </section>
+            <div class="form-actions">
+                <button type="submit" class="auth-btn form-primary">CHANGE PASSWORD</button>
             </div>
-
-
-            <div class="form-group">
-
-                <label>NEW PASSWORD</label>
-
-                <input type="password"
-                       name="new_password"
-                       placeholder="At least 8 characters">
-
-                {% if errors.new_password is defined %}
-                    <p class="field-error">{{ errors.new_password }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>CONFIRM NEW PASSWORD</label>
-
-                <input type="password"
-                       name="confirm_password"
-                       placeholder="Repeat your new password">
-
-                {% if errors.confirm_password is defined %}
-                    <p class="field-error">{{ errors.confirm_password }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <label class="show-pass">
-                <input type="checkbox"> Show password
-            </label>
-
-
-            <button type="submit" class="auth-btn outline">
-                CHANGE PASSWORD
-            </button>
 
         </form>
 
 
         <div class="auth-actions">
 
-            <a href="{{ path('app_account') }}" class="auth-btn">
+            <a href="{{ path('app_account') }}" class="small-btn form-cancel">
                 ← MY ACCOUNT
             </a>
 

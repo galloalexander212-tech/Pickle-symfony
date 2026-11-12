@@ -739,6 +739,29 @@ h1, h2, h3, button, a, label {
     color: var(--green);
 }
 
+.badge.pending,
+.badge.payment_claimed {
+
+    background: #fff3cd;
+
+    color: #795b00;
+}
+
+.badge.confirmed {
+
+    background: #e4f4e8;
+
+    color: #24633a;
+}
+
+.badge.rejected,
+.badge.cancelled {
+
+    background: #fbe9e7;
+
+    color: #9c3025;
+}
+
 
 /* Admin head + table */
 
@@ -1280,6 +1303,24 @@ body {
     color: var(--lime);
 }
 
+.small-btn.staff-create-btn {
+
+    background: var(--green);
+
+    border-color: var(--green);
+
+    color: #ffffff;
+}
+
+.small-btn.staff-create-btn:hover {
+
+    background: var(--dark-green);
+
+    border-color: var(--lime);
+
+    color: #ffffff;
+}
+
 
 /* Badges + statuses in the dark */
 
@@ -1685,6 +1726,402 @@ body::before {
 body {
 
     font-family: "Alef", sans-serif;
+}
+
+
+/* Shared form layout */
+
+.layout-form {
+
+    display: grid;
+
+    gap: 0;
+
+    margin-bottom: 15px;
+
+    padding: 0;
+
+    background: transparent;
+}
+
+.form-section {
+
+    display: grid;
+
+    gap: 16px;
+
+    margin-bottom: 18px;
+
+    padding: 18px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    background: #171d18;
+}
+
+.form-section-title {
+
+    margin: 0;
+
+    color: var(--lime);
+
+    font: 700 11px "Alef", sans-serif;
+
+    letter-spacing: 1.5px;
+}
+
+.form-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+
+    align-items: start;
+}
+
+.form-grid .form-group {
+
+    min-width: 0;
+
+    margin: 0;
+}
+
+.form-grid .field-full,
+.form-grid .upload-card {
+
+    grid-column: 1 / -1;
+}
+
+.layout-form .form-group label,
+.profile-form-card > label {
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+.layout-form .form-group input:not([type="checkbox"]):not([type="file"]),
+.layout-form .form-group select,
+.layout-form .form-group textarea,
+.auth-form .form-group input:not([type="checkbox"]):not([type="file"]) {
+
+    display: block;
+
+    width: 100%;
+
+    height: 45px;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 6px;
+
+    outline: none;
+
+    background: #1c231e;
+
+    color: #e8ece7;
+
+    font: 14px "Alef", sans-serif;
+}
+
+.layout-form .form-group textarea {
+
+    min-height: 100px;
+
+    padding: 10px 12px;
+
+    resize: vertical;
+}
+
+.layout-form .form-group input:focus,
+.layout-form .form-group select:focus,
+.layout-form .form-group textarea:focus,
+.auth-form .form-group input:focus {
+
+    border-color: var(--green);
+}
+
+.upload-card {
+
+    display: grid;
+
+    gap: 10px;
+
+    min-width: 0;
+
+    margin: 0;
+
+    padding: 16px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    background: #1c231e;
+}
+
+.upload-card input[type="file"],
+.profile-form-card input[type="file"] {
+
+    width: 100%;
+
+    min-height: 45px;
+
+    padding: 8px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 6px;
+
+    background: #171d18;
+
+    color: #e8ece7;
+
+    font: 13px "Alef", sans-serif;
+}
+
+.upload-card .edit-note {
+
+    margin: 0;
+}
+
+.upload-card .admin-thumb,
+.profile-form-card .admin-thumb {
+
+    max-width: 150px;
+
+    max-height: 110px;
+
+    object-fit: cover;
+
+    border-radius: 6px;
+}
+
+.form-actions {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.form-actions .form-primary,
+.profile-form-card .form-primary {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: auto;
+
+    min-width: 160px;
+
+    height: 44px;
+
+    padding: 0 20px;
+
+    line-height: 1;
+
+    text-decoration: none;
+}
+
+.form-actions .form-cancel {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 110px;
+
+    height: 44px;
+
+    padding: 0 16px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 6px;
+
+    background: #1c231e;
+
+    color: #cfd8cf;
+
+    font: 700 11px "Alef", sans-serif;
+
+    text-decoration: none;
+}
+
+.form-actions .form-cancel:hover {
+
+    border-color: var(--lime);
+
+    color: var(--lime);
+}
+
+.auth-form {
+
+    display: block;
+}
+
+.auth-form .form-group {
+
+    margin-bottom: 16px;
+}
+
+.auth-form .form-actions {
+
+    margin-top: 16px;
+}
+
+.profile-customization {
+
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 16px;
+
+    padding: 16px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    background: #171d18;
+}
+
+.profile-avatar-preview {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+}
+
+.profile-avatar-preview .nav-avatar {
+
+    display: inline-flex;
+
+    width: 72px !important;
+
+    height: 72px !important;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+}
+
+.profile-panel-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+
+    align-items: stretch;
+}
+
+.profile-form-card {
+
+    display: grid;
+
+    grid-template-rows: auto minmax(0, 1fr) auto;
+
+    gap: 14px;
+
+    min-width: 0;
+
+    padding: 16px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    background: #171d18;
+}
+
+.profile-panel-content {
+
+    align-self: stretch;
+}
+
+.profile-form-card .form-group {
+
+    margin: 0;
+}
+
+.profile-form-card .form-actions {
+
+    margin-top: auto;
+}
+
+.profile-form-card .avatar-colors {
+
+    min-height: 45px;
+
+    align-items: center;
+
+    margin: 0;
+}
+
+.profile-form-card .form-actions .form-primary {
+
+    width: 100%;
+}
+
+.layout-form.auth-form .show-pass {
+
+    margin-top: 2px;
+}
+
+@media (max-width: 700px) {
+
+    .form-grid,
+    .profile-panel-grid {
+
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid .field-full,
+    .form-grid .upload-card,
+    .profile-avatar-preview {
+
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .form-section {
+
+        padding: 14px;
+    }
+
+    .form-actions .form-primary,
+    .form-actions .form-cancel {
+
+        flex: 1 1 130px;
+    }
 }
 
 

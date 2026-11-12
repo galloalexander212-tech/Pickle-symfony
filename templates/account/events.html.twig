@@ -64,7 +64,7 @@
             {{ isEdit ? 'EDIT EVENT — ' ~ editEvent.title : 'CREATE AN EVENT' }}
         </h3>
 
-        <form method="POST" action="{{ path('app_admin_events') }}" enctype="multipart/form-data" class="admin-form">
+        <form method="POST" action="{{ path('app_admin_events') }}" enctype="multipart/form-data" class="layout-form">
 
             <input type="hidden" name="action" value="{{ isEdit ? 'update' : 'create' }}">
 
@@ -73,140 +73,75 @@
             {% endif %}
 
 
-            <div class="form-group">
+            {% set selectedType = values.type|default(isEdit ? editEvent.type : 'open_play') %}
+            <section class="form-section">
+                <h4 class="form-section-title">EVENT DETAILS</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>TITLE</label>
+                        <input type="text" name="title" value="{{ values.title|default(isEdit ? editEvent.title : '') }}"
+                               placeholder="Saturday Morning Smash">
+                        {% if errors.title is defined %}<p class="field-error">{{ errors.title }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>EVENT TYPE</label>
+                        <select name="type">
+                            <option value="open_play" {{ selectedType == 'open_play' ? 'selected' : '' }}>Open Play</option>
+                            <option value="tournament" {{ selectedType == 'tournament' ? 'selected' : '' }}>Tournament</option>
+                        </select>
+                        {% if errors.type is defined %}<p class="field-error">{{ errors.type }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>DATE</label>
+                        <input type="date" name="date" value="{{ values.date|default(isEdit ? editEvent.eventDate|date('Y-m-d') : '') }}">
+                        {% if errors.date is defined %}<p class="field-error">{{ errors.date }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>TIME</label>
+                        <input type="time" name="time" value="{{ values.time|default(isEdit ? editEvent.eventTime|date('H:i') : '') }}">
+                        {% if errors.time is defined %}<p class="field-error">{{ errors.time }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>MAX PLAYERS</label>
+                        <input type="number" name="max_players" min="2" max="64"
+                               value="{{ values.max_players|default(isEdit ? editEvent.maxPlayers : '8') }}">
+                        {% if errors.max_players is defined %}<p class="field-error">{{ errors.max_players }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>PRIZE (TOURNAMENTS — OPTIONAL)</label>
+                        <input type="text" name="prize" value="{{ values.prize|default(isEdit ? editEvent.prize : '') }}"
+                               placeholder="₱5,000 + bragging rights">
+                        {% if errors.prize is defined %}<p class="field-error">{{ errors.prize }}</p>{% endif %}
+                    </div>
+                    <div class="form-group field-full">
+                        <label>LOCATION</label>
+                        <input type="text" name="location" value="{{ values.location|default(isEdit ? editEvent.location : '') }}"
+                               placeholder="Dumaguete City">
+                        {% if errors.location is defined %}<p class="field-error">{{ errors.location }}</p>{% endif %}
+                    </div>
+                    <div class="form-group field-full">
+                        <label>DESCRIPTION (OPTIONAL)</label>
+                        <input type="text" name="description" value="{{ values.description|default(isEdit ? editEvent.description : '') }}"
+                               placeholder="All levels welcome — paddles provided!">
+                    </div>
+                </div>
+            </section>
 
-                <label>EVENT TYPE</label>
+            <section class="form-section">
+                <h4 class="form-section-title">MEDIA</h4>
+                <div class="form-group upload-card">
+                    <label>EVENT PHOTO (JPG, PNG OR WEBP; MAX 2 MB) {{ isEdit and editEvent.image ? '(LEAVE EMPTY TO KEEP CURRENT)' : '(OPTIONAL)' }}</label>
+                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
+                    {% if errors.image is defined %}<p class="field-error">{{ errors.image }}</p>{% endif %}
+                    {% if isEdit and editEvent.image %}
+                        <p class="edit-note"><img src="{{ asset(editEvent.image) }}" alt="Current photo for {{ editEvent.title }}" class="admin-thumb"></p>
+                    {% endif %}
+                </div>
+            </section>
 
-                {% set selectedType = values.type|default(isEdit ? editEvent.type : 'open_play') %}
-                <select name="type">
-                    <option value="open_play" {{ selectedType == 'open_play' ? 'selected' : '' }}>Open Play</option>
-                    <option value="tournament" {{ selectedType == 'tournament' ? 'selected' : '' }}>Tournament</option>
-                </select>
-
-                {% if errors.type is defined %}
-                    <p class="field-error">{{ errors.type }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>TITLE</label>
-
-                <input type="text" name="title"
-                       value="{{ values.title|default(isEdit ? editEvent.title : '') }}"
-                       placeholder="Saturday Morning Smash">
-
-                {% if errors.title is defined %}
-                    <p class="field-error">{{ errors.title }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>LOCATION</label>
-
-                <input type="text" name="location"
-                       value="{{ values.location|default(isEdit ? editEvent.location : '') }}"
-                       placeholder="Dumaguete City">
-
-                {% if errors.location is defined %}
-                    <p class="field-error">{{ errors.location }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>DATE</label>
-
-                <input type="date" name="date"
-                       value="{{ values.date|default(isEdit ? editEvent.eventDate|date('Y-m-d') : '') }}">
-
-                {% if errors.date is defined %}
-                    <p class="field-error">{{ errors.date }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>TIME</label>
-
-                <input type="time" name="time"
-                       value="{{ values.time|default(isEdit ? editEvent.eventTime|date('H:i') : '') }}">
-
-                {% if errors.time is defined %}
-                    <p class="field-error">{{ errors.time }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>MAX PLAYERS</label>
-
-                <input type="number" name="max_players" min="2" max="64"
-                       value="{{ values.max_players|default(isEdit ? editEvent.maxPlayers : '8') }}">
-
-                {% if errors.max_players is defined %}
-                    <p class="field-error">{{ errors.max_players }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>PRIZE (TOURNAMENTS — OPTIONAL)</label>
-
-                <input type="text" name="prize"
-                       value="{{ values.prize|default(isEdit ? editEvent.prize : '') }}"
-                       placeholder="₱5,000 + bragging rights">
-
-                {% if errors.prize is defined %}
-                    <p class="field-error">{{ errors.prize }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>PHOTO {{ isEdit ? '(LEAVE EMPTY TO KEEP CURRENT)' : '(OPTIONAL)' }}</label>
-
-                <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
-
-                {% if errors.image is defined %}
-                    <p class="field-error">{{ errors.image }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group span-2">
-
-                <label>DESCRIPTION (OPTIONAL)</label>
-
-                <input type="text" name="description"
-                       value="{{ values.description|default(isEdit ? editEvent.description : '') }}"
-                       placeholder="All levels welcome — paddles provided!">
-
-            </div>
-
-
-            <div class="form-group">
-
-                <button type="submit" class="auth-btn">
-                    {{ isEdit ? 'SAVE CHANGES' : 'CREATE EVENT' }}
-                </button>
-
+            <div class="form-actions">
+                <button type="submit" class="auth-btn form-primary">{{ isEdit ? 'SAVE CHANGES' : 'CREATE EVENT' }}</button>
+                {% if isEdit %}<a href="{{ path('app_admin_events') }}" class="small-btn form-cancel">CANCEL</a>{% endif %}
             </div>
 
         </form>

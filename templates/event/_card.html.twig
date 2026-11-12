@@ -30,6 +30,10 @@
 
         <p class="event-meta">◉ {{ ev.location }}</p>
 
+        {% if ev.entranceFee is not null %}
+            <p class="event-meta">Entrance fee: ₱{{ ev.entranceFee|number_format(2) }}</p>
+        {% endif %}
+
         {% if ev.description is not empty %}
             <p class="event-desc">{{ ev.description }}</p>
         {% endif %}

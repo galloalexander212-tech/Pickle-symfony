@@ -71,7 +71,7 @@
         <div class="tab-panel{{ activeTab == 'login' ? ' active' : '' }}"
              id="login-panel">
 
-            <form method="POST" action="{{ path('app_login') }}">
+            <form method="POST" action="{{ path('app_login') }}" class="layout-form auth-form">
 
                 <input type="hidden" name="action" value="login">
 
@@ -111,9 +111,9 @@
                 </label>
 
 
-                <button type="submit" class="auth-btn">
-                    LOG IN
-                </button>
+                <div class="form-actions">
+                    <button type="submit" class="auth-btn form-primary">LOG IN</button>
+                </div>
 
             </form>
 
@@ -129,7 +129,7 @@
         <div class="tab-panel{{ activeTab == 'register' ? ' active' : '' }}"
              id="register-panel">
 
-            <form method="POST" action="{{ path('app_register') }}">
+            <form method="POST" action="{{ path('app_register') }}" class="layout-form auth-form">
 
                 <input type="hidden" name="action" value="register">
 
@@ -200,9 +200,9 @@
                 </label>
 
 
-                <button type="submit" class="auth-btn">
-                    CREATE ACCOUNT
-                </button>
+                <div class="form-actions">
+                    <button type="submit" class="auth-btn form-primary">CREATE ACCOUNT</button>
+                </div>
 
             </form>
 

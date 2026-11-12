@@ -8,6 +8,8 @@ use App\Entity\Event;
 use App\Entity\EventJoin;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\CourtEventImageStorage;
+use App\Service\QrImageStorage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -15,16 +17,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_ADMIN')]
 class AdminController extends AbstractController
 {
-    public function __construct(#[Autowire('%kernel.project_dir%')] private string $projectDir)
-    {
-    }
-
     #[Route('/admin', name: 'app_admin', methods: ['GET', 'POST'])]
     public function dashboard(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -215,7 +212,12 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/courts', name: 'app_admin_courts', methods: ['GET', 'POST'])]
-    public function courts(Request $request, EntityManagerInterface $entityManager): Response
+    public function courts(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        QrImageStorage $qrImageStorage,
+        CourtEventImageStorage $imageStorage,
+    ): Response
     {
         $errors = [];
         $courtId = $request->query->getInt('edit');
@@ -224,10 +226,26 @@ class AdminController extends AbstractController
 
             if ($action === 'create' || $action === 'update') {
                 $courtId = $action === 'update' ? $request->request->getInt('court_id') : 0;
+                $csrfId = $action === 'create' ? 'admin_create_court' : 'admin_update_court_' . $courtId;
+                if (($action === 'update' && $courtId < 1)
+                    || !$this->isCsrfTokenValid($csrfId, (string) $request->request->get('_token', ''))
+                ) {
+                    $this->addFlash('error', 'The court form expired. Please try again.');
+
+                    return $this->redirectToRoute('app_admin_courts');
+                }
                 $court = $courtId > 0 ? $entityManager->getRepository(Court::class)->find($courtId) : new Court();
+                if (!$court instanceof Court) {
+                    $this->addFlash('error', 'Court not found.');
+
+                    return $this->redirectToRoute('app_admin_courts');
+                }
                 $name = trim((string) $request->request->get('name', ''));
                 $location = trim((string) $request->request->get('location', ''));
                 $rating = (float) $request->request->get('rating', 0);
+                $price = trim((string) $request->request->get('price', ''));
+                $ownerId = $request->request->getInt('owner_id');
+                $owner = $ownerId > 0 ? $entityManager->getRepository(User::class)->find($ownerId) : null;
 
                 if ($name === '') {
                     $errors['name'] = 'Court name is required.';
@@ -237,6 +255,12 @@ class AdminController extends AbstractController
                 }
                 if ($rating < 0 || $rating > 5) {
                     $errors['rating'] = 'Rating must be between 0 and 5.';
+                }
+                if ($price !== '' && preg_match('/^\d{1,8}(?:\.\d{1,2})?$/', $price) !== 1) {
+                    $errors['price'] = 'Enter a price with up to 8 whole-number digits and 2 decimal places.';
+                }
+                if ($ownerId > 0 && (!$owner instanceof User || $owner->getRole() !== 'staff')) {
+                    $errors['owner_id'] = 'Choose a staff account or no owner.';
                 }
 
                 if ($errors === []) {
@@ -258,48 +282,92 @@ class AdminController extends AbstractController
                 $imagePath = null;
                 $upload = $request->files->get('image');
                 if ($errors === [] && $upload instanceof UploadedFile && $upload->getClientOriginalName() !== '') {
-                    $imagePath = $this->storeImage($upload, 'courts');
+                    $imagePath = $imageStorage->store($upload, 'courts');
                     if ($imagePath === false) {
-                        $errors['image'] = 'Photo upload failed — use JPG, PNG, WEBP or GIF under 5MB.';
+                        $errors['image'] = 'Photo upload failed. Use JPG, PNG or WEBP up to 2 MB.';
+                    }
+                }
+
+                $qrPath = null;
+                $qrUpload = $request->files->get('qr');
+                if ($errors === [] && $qrUpload instanceof UploadedFile && $qrUpload->getError() !== UPLOAD_ERR_NO_FILE) {
+                    $qrPath = $qrImageStorage->store($qrUpload);
+                    if (!is_string($qrPath)) {
+                        $errors['qr'] = 'QR upload failed. Use PNG, JPG or WEBP up to 2 MB.';
+                    }
+                }
+
+                if ($errors !== []) {
+                    if (is_string($imagePath)) {
+                        $imageStorage->remove($imagePath, 'courts');
+                    }
+                    if (is_string($qrPath)) {
+                        $qrImageStorage->remove($qrPath);
                     }
                 }
 
                 if ($errors === [] && $court instanceof Court) {
                     $oldImage = $court->getImage();
+                    $oldQrPath = $court->getQrPath();
                     $court->setName($name);
                     $court->setLocation($location);
                     $court->setRating(number_format($rating, 1, '.', ''));
+                    $court->setPrice($price === '' ? null : $price);
+                    $court->setOwner($owner);
                     if (is_string($imagePath)) {
                         $court->setImage($imagePath);
+                    }
+                    if (is_string($qrPath)) {
+                        $court->setQrPath($qrPath);
                     }
 
                     $entityManager->persist($court);
                     $entityManager->flush();
 
                     if (is_string($imagePath) && $oldImage !== null) {
-                        $this->removeStoredImage($oldImage, 'courts');
+                        $imageStorage->remove($oldImage, 'courts');
+                    }
+                    if (is_string($qrPath)) {
+                        $qrImageStorage->remove($oldQrPath);
                     }
 
                     $this->addFlash('success', $action === 'create' ? 'Court added!' : 'Court updated!');
 
                     return $this->redirectToRoute('app_admin_courts');
                 }
+
+                if ($errors !== []) {
+                    $this->addFlash('error', 'Please correct the highlighted court fields.');
+                }
             } elseif ($action === 'delete') {
                 $courtId = $request->request->getInt('court_id');
+                if (!$this->isCsrfTokenValid('admin_delete_court_' . $courtId, (string) $request->request->get('_token', ''))) {
+                    $this->addFlash('error', 'The court delete form expired. Please try again.');
+
+                    return $this->redirectToRoute('app_admin_courts');
+                }
                 if ($courtId > 0) {
                     $court = $entityManager->getRepository(Court::class)->find($courtId);
                     if ($court instanceof Court) {
                         $imagePath = $court->getImage();
+                        $qrPath = $court->getQrPath();
                         $entityManager->remove($court);
                         $entityManager->flush();
                         if ($imagePath !== null) {
-                            $this->removeStoredImage($imagePath, 'courts');
+                            $imageStorage->remove($imagePath, 'courts');
                         }
+                        $qrImageStorage->remove($qrPath);
                         $this->addFlash('success', 'Court deleted.');
+                    } else {
+                        $this->addFlash('error', 'Court not found.');
                     }
+                } else {
+                    $this->addFlash('error', 'Invalid court.');
                 }
 
                 return $this->redirectToRoute('app_admin_courts');
+            } else {
+                $this->addFlash('error', 'Invalid court action.');
             }
         }
 
@@ -309,14 +377,18 @@ class AdminController extends AbstractController
         return $this->render('account/courts.html.twig', [
             'courts' => $entityManager->getRepository(Court::class)->findBy([], ['createdAt' => 'DESC']),
             'editCourt' => $editCourt,
+            'staffUsers' => $entityManager->getRepository(User::class)->findBy(['role' => 'staff'], ['username' => 'ASC']),
             'errors' => $errors,
             'values' => $values,
         ]);
     }
 
     #[Route('/admin/events', name: 'app_admin_events', methods: ['GET', 'POST'])]
-    public function events(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function events(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        CourtEventImageStorage $imageStorage,
+    ): Response {
         $errors = [];
         $eventId = $request->query->getInt('edit');
         if ($request->isMethod('POST')) {
@@ -359,9 +431,9 @@ class AdminController extends AbstractController
                 $imagePath = null;
                 $upload = $request->files->get('image');
                 if ($errors === [] && $upload instanceof UploadedFile && $upload->getClientOriginalName() !== '') {
-                    $imagePath = $this->storeImage($upload, 'events');
+                    $imagePath = $imageStorage->store($upload, 'events');
                     if ($imagePath === false) {
-                        $errors['image'] = 'Photo upload failed — use JPG, PNG, WEBP or GIF under 5MB.';
+                        $errors['image'] = 'Photo upload failed. Use JPG, PNG or WEBP up to 2 MB.';
                     }
                 }
 
@@ -393,13 +465,20 @@ class AdminController extends AbstractController
                         $entityManager->flush();
 
                         if (is_string($imagePath) && $oldImage !== null) {
-                            $this->removeStoredImage($oldImage, 'events');
+                            $imageStorage->remove($oldImage, 'events');
                         }
 
                         $this->addFlash('success', ucfirst(str_replace('_', ' ', $type)) . ($action === 'create' ? ' created!' : ' updated!'));
 
                         return $this->redirectToRoute('app_admin_events');
                     }
+                }
+
+                if ($errors !== []) {
+                    if (is_string($imagePath)) {
+                        $imageStorage->remove($imagePath, 'events');
+                    }
+                    $this->addFlash('error', 'Please correct the highlighted event fields.');
                 }
             } elseif ($action === 'delete') {
                 $eventId = $request->request->getInt('event_id');
@@ -410,7 +489,7 @@ class AdminController extends AbstractController
                         $entityManager->remove($event);
                         $entityManager->flush();
                         if ($imagePath !== null) {
-                            $this->removeStoredImage($imagePath, 'events');
+                            $imageStorage->remove($imagePath, 'events');
                         }
                         $this->addFlash('success', 'Event deleted.');
                     }
@@ -432,53 +511,4 @@ class AdminController extends AbstractController
         ]);
     }
 
-    private function storeImage(UploadedFile $upload, string $folder): string|false|null
-    {
-        if ($upload->getError() === UPLOAD_ERR_NO_FILE) {
-            return null;
-        }
-
-        if (!$upload->isValid() || $upload->getSize() > 5 * 1024 * 1024) {
-            return false;
-        }
-
-        $image = @getimagesize($upload->getPathname());
-        $extensions = [
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/webp' => 'webp',
-            'image/gif' => 'gif',
-        ];
-        if ($image === false || !isset($extensions[$image['mime']])) {
-            return false;
-        }
-
-        $prefix = $folder === 'courts' ? 'courts' : 'events';
-        $filename = $prefix . '_' . bin2hex(random_bytes(8)) . '.' . $extensions[$image['mime']];
-        $directory = $this->projectDir . '/public/uploads/' . $folder;
-        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            return false;
-        }
-
-        try {
-            $upload->move($directory, $filename);
-        } catch (\Throwable) {
-            return false;
-        }
-
-        return 'uploads/' . $folder . '/' . $filename;
-    }
-
-    private function removeStoredImage(string $imagePath, string $folder): void
-    {
-        $prefix = 'uploads/' . $folder . '/';
-        if (!str_starts_with($imagePath, $prefix)) {
-            return;
-        }
-
-        $path = $this->projectDir . '/public/' . $imagePath;
-        if (is_file($path)) {
-            unlink($path);
-        }
-    }
 }

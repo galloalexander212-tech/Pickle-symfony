@@ -1,0 +1,47 @@
+{% extends 'staff/_layout.html.twig' %}
+
+{% block title %}PICKLE | My Events{% endblock %}
+{% block staff_heading %}My events{% endblock %}
+
+{% block staff_content %}
+    <div class="admin-top-actions">
+        <a href="{{ path('app_staff_event_new') }}" class="small-btn staff-create-btn">CREATE AN EVENT</a>
+    </div>
+
+    <h3 class="admin-section-title">MY EVENTS</h3>
+    {% if events is empty %}
+        <p class="empty-note">No events yet — create an open play or tournament above.</p>
+    {% else %}
+        <div class="table-wrap">
+            <table class="admin-table">
+                <thead>
+                <tr><th>PHOTO</th><th>TYPE</th><th>TITLE</th><th>COURT</th><th>DATE</th><th>ENTRANCE FEE</th><th>ACTIONS</th></tr>
+                </thead>
+                <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td>
+                            {% if event.image %}
+                                <img src="{{ asset(event.image) }}" alt="{{ event.title }}" class="admin-thumb">
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>{{ event.type|replace({'_': ' '})|upper }}</td>
+                        <td>{{ event.title }}</td>
+                        <td>{{ event.court.name }}</td>
+                        <td>{{ event.eventDate|date('M j, Y') }} {{ event.eventTime|date('g:i A') }}</td>
+                        <td>{{ event.entranceFee is not null ? '₱' ~ event.entranceFee|number_format(2) : '—' }}</td>
+                        <td>
+                            <a href="{{ path('app_staff_event_edit', {id: event.id}) }}" class="small-btn">EDIT</a>
+                            <form method="post" action="{{ path('app_staff_event_delete', {id: event.id}) }}" class="row-form"
+                                  onsubmit="return confirm('Delete this event? This cannot be undone.');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('staff_delete_event_' ~ event.id) }}">
+                                <button type="submit" class="small-btn danger">DELETE</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

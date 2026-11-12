@@ -34,74 +34,89 @@
 
         {% if editUser is null %}
             <h2 class="admin-section-title">CREATE ACCOUNT</h2>
-            <form method="POST" action="{{ path('app_admin_users') }}">
+            <form method="POST" action="{{ path('app_admin_users') }}" class="layout-form">
                 <input type="hidden" name="action" value="create">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_create_user') }}">
-                <div class="admin-form-grid">
-                    <div class="form-group">
-                        <label for="new-username">USERNAME</label>
-                        <input id="new-username" type="text" name="username" minlength="3" maxlength="20" required>
+                <section class="form-section">
+                    <h3 class="form-section-title">ACCOUNT DETAILS</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="new-username">USERNAME</label>
+                            <input id="new-username" type="text" name="username" minlength="3" maxlength="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-email">EMAIL</label>
+                            <input id="new-email" type="email" name="email" maxlength="255" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-password">PASSWORD</label>
+                            <input id="new-password" type="password" name="password" minlength="8" maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-role">ROLE</label>
+                            <select id="new-role" name="role" required>
+                                <option value="ROLE_USER">USER</option>
+                                <option value="ROLE_STAFF">STAFF</option>
+                                <option value="ROLE_ADMIN">ADMIN</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="new-email">EMAIL</label>
-                        <input id="new-email" type="email" name="email" maxlength="255" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-password">PASSWORD</label>
-                        <input id="new-password" type="password" name="password" minlength="8" maxlength="100" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-role">ROLE</label>
-                        <select id="new-role" name="role" required>
-                            <option value="ROLE_USER">USER</option>
-                            <option value="ROLE_STAFF">STAFF</option>
-                            <option value="ROLE_ADMIN">ADMIN</option>
-                        </select>
-                    </div>
+                </section>
+                <div class="form-actions">
+                    <button type="submit" class="auth-btn form-primary">CREATE ACCOUNT</button>
                 </div>
-                <button type="submit" class="auth-btn inline">CREATE ACCOUNT</button>
             </form>
         {% else %}
             <h2 class="admin-section-title">EDIT {{ editUser.username|upper }}</h2>
-            <form method="POST" action="{{ path('app_admin_users') }}">
+            <form method="POST" action="{{ path('app_admin_users') }}" class="layout-form">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="user_id" value="{{ editUser.id }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_update_user_' ~ editUser.id) }}">
-                <div class="admin-form-grid">
-                    <div class="form-group">
-                        <label for="edit-username">USERNAME</label>
-                        <input id="edit-username" type="text" name="username" value="{{ editUser.username }}" minlength="3" maxlength="20" required>
+                <section class="form-section">
+                    <h3 class="form-section-title">ACCOUNT DETAILS</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="edit-username">USERNAME</label>
+                            <input id="edit-username" type="text" name="username" value="{{ editUser.username }}" minlength="3" maxlength="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-email">EMAIL</label>
+                            <input id="edit-email" type="email" name="email" value="{{ editUser.email }}" maxlength="255" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-role">ROLE</label>
+                            <select id="edit-role" name="role" required>
+                                <option value="ROLE_USER" {{ editUser.role == 'user' ? 'selected' : '' }}>USER</option>
+                                <option value="ROLE_STAFF" {{ editUser.role == 'staff' ? 'selected' : '' }}>STAFF</option>
+                                <option value="ROLE_ADMIN" {{ editUser.role == 'admin' ? 'selected' : '' }}>ADMIN</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="edit-email">EMAIL</label>
-                        <input id="edit-email" type="email" name="email" value="{{ editUser.email }}" maxlength="255" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-role">ROLE</label>
-                        <select id="edit-role" name="role" required>
-                            <option value="ROLE_USER" {{ editUser.role == 'user' ? 'selected' : '' }}>USER</option>
-                            <option value="ROLE_STAFF" {{ editUser.role == 'staff' ? 'selected' : '' }}>STAFF</option>
-                            <option value="ROLE_ADMIN" {{ editUser.role == 'admin' ? 'selected' : '' }}>ADMIN</option>
-                        </select>
-                    </div>
+                </section>
+                <div class="form-actions">
+                    <button type="submit" class="auth-btn form-primary">SAVE ACCOUNT</button>
+                    <a href="{{ path('app_admin_users') }}" class="small-btn form-cancel">CANCEL</a>
                 </div>
-                <button type="submit" class="auth-btn inline">SAVE ACCOUNT</button>
-                <a href="{{ path('app_admin_users') }}" class="small-btn">CANCEL</a>
             </form>
 
             <div class="auth-divider"></div>
             <h3 class="section-sub">RESET PASSWORD</h3>
-            <form method="POST" action="{{ path('app_admin_users') }}">
+            <form method="POST" action="{{ path('app_admin_users') }}" class="layout-form">
                 <input type="hidden" name="action" value="reset_password">
                 <input type="hidden" name="user_id" value="{{ editUser.id }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_reset_password_' ~ editUser.id) }}">
-                <div class="admin-form-grid">
-                    <div class="form-group">
-                        <label for="temporary-password">NEW TEMPORARY PASSWORD</label>
-                        <input id="temporary-password" type="password" name="password" minlength="8" maxlength="100" required>
+                <section class="form-section">
+                    <h4 class="form-section-title">PASSWORD</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="temporary-password">NEW TEMPORARY PASSWORD</label>
+                            <input id="temporary-password" type="password" name="password" minlength="8" maxlength="100" required>
+                        </div>
                     </div>
+                </section>
+                <div class="form-actions">
+                    <button type="submit" class="auth-btn form-primary">RESET PASSWORD</button>
                 </div>
-                <button type="submit" class="auth-btn outline">RESET PASSWORD</button>
             </form>
         {% endif %}
 

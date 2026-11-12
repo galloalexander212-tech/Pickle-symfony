@@ -1,0 +1,18 @@
+{% extends 'staff/_layout.html.twig' %}
+
+{% block title %}PICKLE | Staff Dashboard{% endblock %}
+{% block staff_heading %}Staff dashboard{% endblock %}
+
+{% block staff_content %}
+    <div class="admin-stats">
+        <a class="admin-stat" href="{{ path('app_staff_courts') }}"><strong>{{ stats.courts }}</strong><span>MY COURTS</span></a>
+        <a class="admin-stat" href="{{ path('app_staff_events') }}"><strong>{{ stats.events }}</strong><span>MY EVENTS</span></a>
+        <a class="admin-stat" href="{{ path('app_staff_bookings') }}"><strong>{{ stats.bookings }}</strong><span>COURT BOOKINGS</span></a>
+        <a class="admin-stat" href="{{ path('app_staff_bookings') }}"><strong>{{ stats.joins }}</strong><span>EVENT JOINS</span></a>
+    </div>
+
+    <div class="admin-top-actions">
+        <a href="{{ path('app_staff_court_new') }}" class="small-btn staff-create-btn">ADD A COURT</a>
+        <a href="{{ path('app_staff_event_new') }}" class="small-btn staff-create-btn">CREATE AN EVENT</a>
+    </div>
+{% endblock %}

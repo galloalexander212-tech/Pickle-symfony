@@ -68,78 +68,82 @@
             {{ isEdit ? 'EDIT COURT — ' ~ editCourt.name : 'ADD A COURT' }}
         </h3>
 
-        <form method="POST" action="{{ path('app_admin_courts') }}" enctype="multipart/form-data" class="admin-form">
+        <form method="POST" action="{{ path('app_admin_courts') }}" enctype="multipart/form-data" class="layout-form">
 
             <input type="hidden" name="action" value="{{ isEdit ? 'update' : 'create' }}">
+            <input type="hidden" name="_token" value="{{ csrf_token(isEdit ? 'admin_update_court_' ~ editCourt.id : 'admin_create_court') }}">
 
             {% if isEdit %}
                 <input type="hidden" name="court_id" value="{{ editCourt.id }}">
             {% endif %}
 
 
-            <div class="form-group">
+            {% set selectedOwner = values.owner_id|default(isEdit and editCourt.owner ? editCourt.owner.id : '') %}
+            <section class="form-section">
+                <h4 class="form-section-title">COURT DETAILS</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>COURT NAME</label>
+                        <input type="text" name="name" value="{{ values.name|default(isEdit ? editCourt.name : '') }}"
+                               placeholder="e.g. Skyline Pickleball Club">
+                        {% if errors.name is defined %}<p class="field-error">{{ errors.name }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>OWNER</label>
+                        <select name="owner_id">
+                            <option value="">No owner / house court</option>
+                            {% for staffUser in staffUsers %}
+                                <option value="{{ staffUser.id }}" {{ selectedOwner == staffUser.id ? 'selected' : '' }}>
+                                    {{ staffUser.username }} ({{ staffUser.email }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.owner_id is defined %}<p class="field-error">{{ errors.owner_id }}</p>{% endif %}
+                    </div>
+                    <div class="form-group field-full">
+                        <label>LOCATION</label>
+                        <input type="text" name="location" value="{{ values.location|default(isEdit ? editCourt.location : '') }}"
+                               placeholder="e.g. Dumaguete City">
+                        {% if errors.location is defined %}<p class="field-error">{{ errors.location }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>RATING (0–5)</label>
+                        <input type="number" name="rating" step="0.1" min="0" max="5"
+                               value="{{ values.rating|default(isEdit ? editCourt.rating : '4.5') }}">
+                        {% if errors.rating is defined %}<p class="field-error">{{ errors.rating }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>PRICE (₱ / HOUR, OPTIONAL)</label>
+                        <input type="number" name="price" min="0" max="99999999.99" step="0.01"
+                               value="{{ values.price|default(isEdit ? editCourt.price : '') }}">
+                        {% if errors.price is defined %}<p class="field-error">{{ errors.price }}</p>{% endif %}
+                    </div>
+                </div>
+            </section>
 
-                <label>COURT NAME</label>
+            <section class="form-section">
+                <h4 class="form-section-title">MEDIA</h4>
+                <div class="form-group upload-card">
+                    <label>COURT PHOTO (JPG, PNG OR WEBP; MAX 2 MB) {{ isEdit and editCourt.image ? '(LEAVE EMPTY TO KEEP CURRENT)' : '(OPTIONAL)' }}</label>
+                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp">
+                    {% if errors.image is defined %}<p class="field-error">{{ errors.image }}</p>{% endif %}
+                    {% if isEdit and editCourt.image %}
+                        <p class="edit-note"><img src="{{ asset(editCourt.image) }}" alt="Current photo of {{ editCourt.name }}" class="admin-thumb"></p>
+                    {% endif %}
+                </div>
+                <div class="form-group upload-card">
+                    <label>PAYMENT QR (PNG, JPG OR WEBP; MAX 2 MB) {{ isEdit and editCourt.qrPath ? '(LEAVE EMPTY TO KEEP CURRENT)' : '(OPTIONAL)' }}</label>
+                    <input type="file" name="qr" accept="image/jpeg,image/png,image/webp">
+                    {% if errors.qr is defined %}<p class="field-error">{{ errors.qr }}</p>{% endif %}
+                    {% if isEdit and editCourt.qrPath %}
+                        <p class="edit-note"><img src="{{ asset('uploads/qr/' ~ editCourt.qrPath) }}" alt="Current payment QR" class="admin-thumb"></p>
+                    {% endif %}
+                </div>
+            </section>
 
-                <input type="text" name="name"
-                       value="{{ values.name|default(isEdit ? editCourt.name : '') }}"
-                       placeholder="e.g. Skyline Pickleball Club">
-
-                {% if errors.name is defined %}
-                    <p class="field-error">{{ errors.name }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>LOCATION</label>
-
-                <input type="text" name="location"
-                       value="{{ values.location|default(isEdit ? editCourt.location : '') }}"
-                       placeholder="e.g. Dumaguete City">
-
-                {% if errors.location is defined %}
-                    <p class="field-error">{{ errors.location }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>RATING (0–5)</label>
-
-                <input type="number" name="rating" step="0.1" min="0" max="5"
-                       value="{{ values.rating|default(isEdit ? editCourt.rating : '4.5') }}">
-
-                {% if errors.rating is defined %}
-                    <p class="field-error">{{ errors.rating }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>PHOTO {{ isEdit ? '(LEAVE EMPTY TO KEEP CURRENT)' : '(OPTIONAL)' }}</label>
-
-                <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
-
-                {% if errors.image is defined %}
-                    <p class="field-error">{{ errors.image }}</p>
-                {% endif %}
-
-            </div>
-
-
-            <div class="form-group">
-
-                <button type="submit" class="auth-btn">
-                    {{ isEdit ? 'SAVE CHANGES' : 'ADD COURT' }}
-                </button>
-
+            <div class="form-actions">
+                <button type="submit" class="auth-btn form-primary">{{ isEdit ? 'SAVE CHANGES' : 'ADD COURT' }}</button>
+                {% if isEdit %}<a href="{{ path('app_admin_courts') }}" class="small-btn form-cancel">CANCEL</a>{% endif %}
             </div>
 
         </form>
@@ -171,6 +175,8 @@
                             <th>NAME</th>
                             <th>LOCATION</th>
                             <th>RATING</th>
+                            <th>OWNER</th>
+                            <th>PRICE</th>
                             <th>ACTIONS</th>
                         </tr>
                     </thead>
@@ -194,6 +200,8 @@
                                 <td>{{ court.name }}</td>
                                 <td>{{ court.location }}</td>
                                 <td>★ {{ court.rating|number_format(1) }}</td>
+                                <td>{{ court.owner ? court.owner.username : 'House court' }}</td>
+                                <td>{% if court.price is not null %}₱{{ court.price|number_format(2) }} / hour{% else %}—{% endif %}</td>
 
                                 <td>
 
@@ -203,6 +211,7 @@
                                           onsubmit="return confirm('Delete this court?')">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="court_id" value="{{ court.id }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_delete_court_' ~ court.id) }}">
                                         <button type="submit" class="small-btn danger">DELETE</button>
                                     </form>
 

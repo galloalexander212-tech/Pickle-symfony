@@ -1,0 +1,100 @@
+{% extends 'staff/_layout.html.twig' %}
+
+{% block title %}PICKLE | {{ isEdit ? 'Edit Event' : 'Create Event' }}{% endblock %}
+{% block staff_heading %}{{ isEdit ? 'Edit event' : 'Create an event' }}{% endblock %}
+
+{% block staff_content %}
+    <h3 class="admin-section-title">{{ isEdit ? 'EDIT EVENT — ' ~ event.title : 'CREATE AN EVENT' }}</h3>
+    {% if courts is empty %}
+        <p class="empty-note">Add a court before creating an event.</p>
+        <a href="{{ path('app_staff_court_new') }}" class="auth-btn">ADD A COURT</a>
+    {% else %}
+        <form method="post" action="{{ isEdit ? path('app_staff_event_edit', {id: event.id}) : path('app_staff_event_new') }}"
+              enctype="multipart/form-data" class="layout-form">
+            <input type="hidden" name="action" value="{{ isEdit ? 'update' : 'create' }}">
+            <input type="hidden" name="_token" value="{{ csrf_token(isEdit ? 'staff_update_event_' ~ event.id : 'staff_create_event') }}">
+
+            {% set selectedCourt = values.court_id|default(isEdit and event.court ? event.court.id : '') %}
+            {% set selectedType = values.type|default(isEdit ? event.type : 'open_play') %}
+            <section class="form-section">
+                <h4 class="form-section-title">EVENT DETAILS</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="event-title">TITLE</label>
+                        <input id="event-title" type="text" name="title" maxlength="150" required
+                               value="{{ values.title|default(isEdit ? event.title : '') }}">
+                        {% if errors.title is defined %}<p class="field-error">{{ errors.title }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="event-type">EVENT TYPE</label>
+                        <select id="event-type" name="type">
+                            <option value="open_play" {{ selectedType == 'open_play' ? 'selected' : '' }}>Open Play</option>
+                            <option value="tournament" {{ selectedType == 'tournament' ? 'selected' : '' }}>Tournament</option>
+                        </select>
+                        {% if errors.type is defined %}<p class="field-error">{{ errors.type }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="event-date">DATE</label>
+                        <input id="event-date" type="date" name="date" required
+                               value="{{ values.date|default(isEdit ? event.eventDate|date('Y-m-d') : '') }}">
+                        {% if errors.date is defined %}<p class="field-error">{{ errors.date }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="event-time">TIME</label>
+                        <input id="event-time" type="time" name="time" required
+                               value="{{ values.time|default(isEdit ? event.eventTime|date('H:i') : '') }}">
+                        {% if errors.time is defined %}<p class="field-error">{{ errors.time }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="event-players">MAX PLAYERS</label>
+                        <input id="event-players" type="number" name="max_players" min="2" max="64" required
+                               value="{{ values.max_players|default(isEdit ? event.maxPlayers : '8') }}">
+                        {% if errors.max_players is defined %}<p class="field-error">{{ errors.max_players }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="event-court">COURT</label>
+                        <select id="event-court" name="court_id" required>
+                            <option value="">Choose one of your courts</option>
+                            {% for court in courts %}
+                                <option value="{{ court.id }}" {{ selectedCourt == court.id ? 'selected' : '' }}>{{ court.name }} — {{ court.location }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.court_id is defined %}<p class="field-error">{{ errors.court_id }}</p>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="event-fee">ENTRANCE FEE (₱, OPTIONAL)</label>
+                        <input id="event-fee" type="number" name="entrance_fee" min="0" max="99999999.99" step="0.01"
+                               value="{{ values.entrance_fee|default(isEdit ? event.entranceFee : '') }}">
+                        {% if errors.entrance_fee is defined %}<p class="field-error">{{ errors.entrance_fee }}</p>{% endif %}
+                    </div>
+                    <div class="form-group field-full">
+                        <label for="event-description">DESCRIPTION (OPTIONAL)</label>
+                        <input id="event-description" type="text" name="description"
+                               value="{{ values.description|default(isEdit ? event.description : '') }}">
+                        {% if errors.description is defined %}<p class="field-error">{{ errors.description }}</p>{% endif %}
+                    </div>
+                </div>
+                {% if selectedCourt is not empty %}
+                    <p class="edit-note">Event location follows the selected court.</p>
+                {% endif %}
+            </section>
+
+            <section class="form-section">
+                <h4 class="form-section-title">MEDIA</h4>
+                <div class="form-group upload-card">
+                    <label for="event-image">EVENT PHOTO (JPG, PNG OR WEBP; MAX 2 MB) {{ isEdit and event.image ? '(LEAVE EMPTY TO KEEP CURRENT)' : '(OPTIONAL)' }}</label>
+                    <input id="event-image" type="file" name="image" accept="image/jpeg,image/png,image/webp">
+                    {% if errors.image is defined %}<p class="field-error">{{ errors.image }}</p>{% endif %}
+                    {% if isEdit and event.image %}
+                        <p class="edit-note"><img src="{{ asset(event.image) }}" alt="Current photo for {{ event.title }}" class="admin-thumb"></p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button type="submit" class="auth-btn form-primary">{{ isEdit ? 'SAVE CHANGES' : 'CREATE EVENT' }}</button>
+                <a href="{{ path('app_staff_events') }}" class="small-btn form-cancel">CANCEL</a>
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}

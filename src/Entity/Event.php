@@ -39,6 +39,10 @@ class Event
     #[ORM\Column(name: 'entrance_fee', type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $entranceFee = null;
 
+    #[ORM\ManyToOne(targetEntity: Court::class)]
+    #[ORM\JoinColumn(name: 'court_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Court $court = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $prize = null;
 
@@ -159,6 +163,18 @@ class Event
     public function setEntranceFee(?string $entranceFee): static
     {
         $this->entranceFee = $entranceFee;
+
+        return $this;
+    }
+
+    public function getCourt(): ?Court
+    {
+        return $this->court;
+    }
+
+    public function setCourt(?Court $court): static
+    {
+        $this->court = $court;
 
         return $this;
     }

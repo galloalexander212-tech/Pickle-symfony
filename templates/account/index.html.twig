@@ -56,28 +56,39 @@
             {% set avatarColors = ['#2ecc71', '#ff6b9d', '#3b82f6', '#8e44ad', '#b8a1e3', '#1b4332'] %}
             {% set avatarLabels = ['green', 'pink', 'blue', 'purple', 'lavender', 'dark green'] %}
             {% set selectedAvatarColor = user.avatarColor ?: avatarColors[user.id % 6] %}
-            <form method="POST" action="{{ path('app_account_avatar') }}" enctype="multipart/form-data" class="profile-form">
-                <input type="hidden" name="_token" value="{{ csrf_token('account_avatar') }}">
-                <label for="avatar">PROFILE PICTURE</label>
-                <input type="file" id="avatar" name="avatar" accept=".jpg,.jpeg,.png,.webp">
-                <button type="submit" class="small-btn">UPLOAD AVATAR</button>
-            </form>
+            <div class="profile-panel-grid">
+                <form method="POST" action="{{ path('app_account_avatar') }}" enctype="multipart/form-data" class="profile-form profile-form-card">
+                    <input type="hidden" name="_token" value="{{ csrf_token('account_avatar') }}">
+                    <h4 class="form-section-title">PROFILE PICTURE</h4>
+                    <div class="profile-panel-content form-group">
+                        <label for="avatar">CHOOSE A PHOTO</label>
+                        <input type="file" id="avatar" name="avatar" accept=".jpg,.jpeg,.png,.webp">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="auth-btn form-primary">UPLOAD AVATAR</button>
+                    </div>
+                </form>
 
-            <form method="POST" action="{{ path('app_account_color') }}" class="profile-form">
-                <input type="hidden" name="_token" value="{{ csrf_token('account_color') }}">
-                <label>AVATAR COLOR</label>
-                <div class="avatar-colors">
-                    {% for color in avatarColors %}
-                        <label class="avatar-color">
-                            <input type="radio" name="avatar_color" value="{{ color }}" aria-label="{{ avatarLabels[loop.index0] }}"
-                                {% if selectedAvatarColor == color %}checked{% endif %}>
-                            <span style="background-color: {{ color }}"></span>
-                        </label>
-                    {% endfor %}
-                </div>
-                <button type="submit" class="small-btn">SAVE COLOR</button>
-            </form>
-
+                <form method="POST" action="{{ path('app_account_color') }}" class="profile-form profile-form-card">
+                    <input type="hidden" name="_token" value="{{ csrf_token('account_color') }}">
+                    <h4 class="form-section-title">AVATAR COLOR</h4>
+                    <div class="profile-panel-content">
+                        <label>CHOOSE A COLOR</label>
+                        <div class="avatar-colors">
+                            {% for color in avatarColors %}
+                                <label class="avatar-color">
+                                    <input type="radio" name="avatar_color" value="{{ color }}" aria-label="{{ avatarLabels[loop.index0] }}"
+                                        {% if selectedAvatarColor == color %}checked{% endif %}>
+                                    <span style="background-color: {{ color }}"></span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="auth-btn form-primary">SAVE COLOR</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <div class="profile-row">

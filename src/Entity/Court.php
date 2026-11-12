@@ -34,6 +34,9 @@ class Court
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
+    #[ORM\Column(name: 'qr_path', length: 255, nullable: true)]
+    private ?string $qrPath = null;
+
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $createdAt;
 
@@ -120,6 +123,18 @@ class Court
     public function setImage(?string $image): static
     {
         $this->image = $image;
+
+        return $this;
+    }
+
+    public function getQrPath(): ?string
+    {
+        return $this->qrPath;
+    }
+
+    public function setQrPath(?string $qrPath): static
+    {
+        $this->qrPath = $qrPath;
 
         return $this;
     }

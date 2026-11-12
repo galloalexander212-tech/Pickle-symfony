@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ asset('style.css') }}">
+    {% block stylesheets %}{% endblock %}
 </head>
 <body>
 
@@ -40,6 +41,9 @@
                     <a href="{{ path('app_admin') }}" class="{{ currentRoute == 'app_admin' ? 'active' : '' }}">DASHBOARD</a>
                     <a href="{{ path('app_admin_users') }}" class="{{ currentRoute == 'app_admin_users' ? 'active' : '' }}">USERS</a>
                 {% endif %}
+                {% if is_granted('ROLE_STAFF') %}
+                    <a href="{{ path('app_staff_courts') }}" class="{{ currentRoute starts with 'app_staff_' ? 'active' : '' }}">MY COURTS</a>
+                {% endif %}
                 <a href="{{ path('app_courts') }}" class="{{ currentRoute == 'app_courts' ? 'active' : '' }}">COURTS</a>
                 <a href="{{ path('app_openplays') }}" class="{{ currentRoute == 'app_openplays' ? 'active' : '' }}">OPEN PLAYS</a>
                 <a href="{{ path('app_tournaments') }}" class="{{ currentRoute == 'app_tournaments' ? 'active' : '' }}">TOURNAMENTS</a>
@@ -63,6 +67,9 @@
         {% if is_granted('ROLE_ADMIN') %}
             <a href="{{ path('app_admin') }}">DASHBOARD</a>
             <a href="{{ path('app_admin_users') }}">USERS</a>
+        {% endif %}
+        {% if is_granted('ROLE_STAFF') %}
+            <a href="{{ path('app_staff_courts') }}">MY COURTS</a>
         {% endif %}
         <a href="{{ path('app_courts') }}">COURTS</a>
         <a href="{{ path('app_openplays') }}">OPEN PLAYS</a>

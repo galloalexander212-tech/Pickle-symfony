@@ -1,0 +1,45 @@
+{% extends 'staff/_layout.html.twig' %}
+
+{% block title %}PICKLE | My Courts{% endblock %}
+{% block staff_heading %}My courts{% endblock %}
+
+{% block staff_content %}
+    <div class="admin-top-actions">
+        <a href="{{ path('app_staff_court_new') }}" class="small-btn staff-create-btn">ADD A COURT</a>
+    </div>
+
+    <h3 class="admin-section-title">MY COURTS</h3>
+    {% if courts is empty %}
+        <p class="empty-note">No courts yet — add your first one above.</p>
+    {% else %}
+        <div class="table-wrap">
+            <table class="admin-table">
+                <thead>
+                <tr><th>NAME</th><th>LOCATION</th><th>PRICE</th><th>QR</th><th>ACTIONS</th></tr>
+                </thead>
+                <tbody>
+                {% for court in courts %}
+                    <tr>
+                        <td>{{ court.name }}</td>
+                        <td>{{ court.location }}</td>
+                        <td>{% if court.price is not null %}₱{{ court.price|number_format(2) }} / hour{% else %}—{% endif %}</td>
+                        <td>
+                            {% if court.qrPath %}
+                                <img src="{{ asset('uploads/qr/' ~ court.qrPath) }}" alt="QR code for {{ court.name }}" class="admin-thumb">
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ path('app_staff_court_edit', {id: court.id}) }}" class="small-btn">EDIT</a>
+                            <form method="post" action="{{ path('app_staff_court_delete', {id: court.id}) }}" class="row-form"
+                                  onsubmit="return confirm('Delete this court? This cannot be undone.');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('staff_delete_court_' ~ court.id) }}">
+                                <button type="submit" class="small-btn danger">DELETE</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

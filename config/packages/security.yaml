@@ -22,6 +22,7 @@ security:
                 target: /
 
     access_control:
+        - { path: '^/staff(?:/|$)', roles: ROLE_STAFF }
         - { path: '^/admin(?:/|$)', roles: ROLE_ADMIN }
 
     role_hierarchy:
