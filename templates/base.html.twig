@@ -40,6 +40,7 @@
                 {% if is_granted('ROLE_ADMIN') %}
                     <a href="{{ path('app_admin') }}" class="{{ currentRoute == 'app_admin' ? 'active' : '' }}">DASHBOARD</a>
                     <a href="{{ path('app_admin_users') }}" class="{{ currentRoute == 'app_admin_users' ? 'active' : '' }}">USERS</a>
+                    <a href="{{ path('app_admin_records') }}" class="{{ currentRoute == 'app_admin_records' ? 'active' : '' }}">RECORDS</a>
                 {% endif %}
                 {% if is_granted('ROLE_STAFF') %}
                     <a href="{{ path('app_staff_courts') }}" class="{{ currentRoute starts with 'app_staff_' ? 'active' : '' }}">MY COURTS</a>
@@ -67,6 +68,7 @@
         {% if is_granted('ROLE_ADMIN') %}
             <a href="{{ path('app_admin') }}">DASHBOARD</a>
             <a href="{{ path('app_admin_users') }}">USERS</a>
+            <a href="{{ path('app_admin_records') }}">RECORDS</a>
         {% endif %}
         {% if is_granted('ROLE_STAFF') %}
             <a href="{{ path('app_staff_courts') }}">MY COURTS</a>

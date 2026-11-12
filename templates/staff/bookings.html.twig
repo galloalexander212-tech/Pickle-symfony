@@ -10,16 +10,37 @@
     {% else %}
         <div class="table-wrap">
             <table class="admin-table">
-                <thead><tr><th>PLAYER</th><th>COURT</th><th>DATE &amp; TIME</th><th>PLAYERS</th><th>STATUS</th></tr></thead>
+                <thead><tr><th>PLAYER</th><th>COURT</th><th>DATE &amp; TIME</th><th>PLAYERS</th><th>FEE</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
                 <tbody>
                 {% for booking in bookings %}
                     {% set statusLabel = booking.status|replace({'_': ' '})|upper %}
+                    {% set fee = booking.court.price %}
+                    {% set canAcceptFree = booking.status == 'pending' and (fee is null or fee + 0 == 0) %}
                     <tr>
                         <td>{{ booking.user.username }}</td>
                         <td>{{ booking.court.name }}</td>
                         <td>{{ booking.bookingDate|date('M j, Y') }} {{ booking.bookingTime|date('g:i A') }}</td>
                         <td>{{ booking.players }}</td>
+                        <td>{% if fee is null or fee + 0 == 0 %}FREE{% else %}₱{{ fee|number_format(2, '.', ',') }}{% endif %}</td>
                         <td><span class="badge {{ booking.status }}">{{ statusLabel }}</span></td>
+                        <td>
+                            {% if booking.status == 'payment_claimed' or canAcceptFree %}
+                                <div class="admin-row-actions">
+                                    <form method="POST" action="{{ path('app_staff_booking_status', {type: 'booking', id: booking.id}) }}" class="row-form">
+                                        <input type="hidden" name="action" value="accept">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('staff_payment_booking_' ~ booking.id ~ '_accept') }}">
+                                        <button type="submit" class="small-btn approve">ACCEPT</button>
+                                    </form>
+                                    {% if booking.status == 'payment_claimed' %}
+                                        <form method="POST" action="{{ path('app_staff_booking_status', {type: 'booking', id: booking.id}) }}" class="row-form" onsubmit="return confirm('Reject this payment claim?')">
+                                            <input type="hidden" name="action" value="reject">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('staff_payment_booking_' ~ booking.id ~ '_reject') }}">
+                                            <button type="submit" class="small-btn reject">REJECT</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            {% else %}—{% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -33,16 +54,37 @@
     {% else %}
         <div class="table-wrap">
             <table class="admin-table">
-                <thead><tr><th>PLAYER</th><th>EVENT</th><th>COURT</th><th>JOINED</th><th>STATUS</th></tr></thead>
+                <thead><tr><th>PLAYER</th><th>EVENT</th><th>COURT</th><th>DATE &amp; TIME</th><th>FEE</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
                 <tbody>
                 {% for eventJoin in joins %}
                     {% set statusLabel = eventJoin.status|replace({'_': ' '})|upper %}
+                    {% set fee = eventJoin.event.entranceFee %}
+                    {% set canAcceptFree = eventJoin.status == 'pending' and (fee is null or fee + 0 == 0) %}
                     <tr>
                         <td>{{ eventJoin.user.username }}</td>
                         <td>{{ eventJoin.event.title }}</td>
                         <td>{{ eventJoin.event.court.name }}</td>
-                        <td>{{ eventJoin.joinedAt|date('M j, Y g:i A') }}</td>
+                        <td>{{ eventJoin.event.eventDate|date('M j, Y') }} {{ eventJoin.event.eventTime|date('g:i A') }}</td>
+                        <td>{% if fee is null or fee + 0 == 0 %}FREE{% else %}₱{{ fee|number_format(2, '.', ',') }}{% endif %}</td>
                         <td><span class="badge {{ eventJoin.status }}">{{ statusLabel }}</span></td>
+                        <td>
+                            {% if eventJoin.status == 'payment_claimed' or canAcceptFree %}
+                                <div class="admin-row-actions">
+                                    <form method="POST" action="{{ path('app_staff_booking_status', {type: 'join', id: eventJoin.id}) }}" class="row-form">
+                                        <input type="hidden" name="action" value="accept">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('staff_payment_join_' ~ eventJoin.id ~ '_accept') }}">
+                                        <button type="submit" class="small-btn approve">ACCEPT</button>
+                                    </form>
+                                    {% if eventJoin.status == 'payment_claimed' %}
+                                        <form method="POST" action="{{ path('app_staff_booking_status', {type: 'join', id: eventJoin.id}) }}" class="row-form" onsubmit="return confirm('Reject this payment claim?')">
+                                            <input type="hidden" name="action" value="reject">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('staff_payment_join_' ~ eventJoin.id ~ '_reject') }}">
+                                            <button type="submit" class="small-btn reject">REJECT</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            {% else %}—{% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>

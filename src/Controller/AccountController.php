@@ -15,9 +15,95 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AccountController extends AbstractController
 {
+    #[Route('/account/bookings/{id}/claim-payment', name: 'app_account_booking_claim', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function claimBookingPayment(int $id, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        $booking = $user instanceof User
+            ? $entityManager->getRepository(Booking::class)->findOneBy(['id' => $id, 'user' => $user])
+            : null;
+
+        if (!$booking instanceof Booking) {
+            throw $this->createNotFoundException('Booking not found.');
+        }
+        if (!$this->isCsrfTokenValid('claim_booking_payment_' . $id, (string) $request->request->get('_token', ''))) {
+            $this->addFlash('error', 'The payment claim expired. Please try again.');
+
+            return $this->redirectToRoute('app_account');
+        }
+        if ($booking->getStatus() !== 'pending') {
+            $this->addFlash('error', 'This booking is no longer waiting for a payment claim.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $court = $booking->getCourt();
+        if ($court === null || (float) ($court->getPrice() ?? 0) <= 0) {
+            $this->addFlash('error', 'This booking does not require a payment claim.');
+
+            return $this->redirectToRoute('app_account');
+        }
+        if (trim((string) $court->getQrPath()) === '') {
+            $this->addFlash('error', 'The owner has not set a payment QR yet.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $booking->setStatus('payment_claimed');
+        $entityManager->flush();
+        $this->addFlash('success', "Payment claimed — waiting for the owner's confirmation");
+
+        return $this->redirectToRoute('app_account');
+    }
+
+    #[Route('/account/event-joins/{id}/claim-payment', name: 'app_account_event_join_claim', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function claimEventJoinPayment(int $id, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        $eventJoin = $user instanceof User
+            ? $entityManager->getRepository(EventJoin::class)->findOneBy(['id' => $id, 'user' => $user])
+            : null;
+
+        if (!$eventJoin instanceof EventJoin) {
+            throw $this->createNotFoundException('Event registration not found.');
+        }
+        if (!$this->isCsrfTokenValid('claim_event_join_payment_' . $id, (string) $request->request->get('_token', ''))) {
+            $this->addFlash('error', 'The payment claim expired. Please try again.');
+
+            return $this->redirectToRoute('app_account');
+        }
+        if ($eventJoin->getStatus() !== 'pending') {
+            $this->addFlash('error', 'This event registration is no longer waiting for a payment claim.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $event = $eventJoin->getEvent();
+        $court = $event?->getCourt();
+        if ($event === null || (float) ($event->getEntranceFee() ?? 0) <= 0) {
+            $this->addFlash('error', 'This event does not require a payment claim.');
+
+            return $this->redirectToRoute('app_account');
+        }
+        if ($court === null || trim((string) $court->getQrPath()) === '') {
+            $this->addFlash('error', 'The owner has not set a payment QR yet.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
+        $eventJoin->setStatus('payment_claimed');
+        $entityManager->flush();
+        $this->addFlash('success', "Payment claimed — waiting for the owner's confirmation");
+
+        return $this->redirectToRoute('app_account');
+    }
+
     #[Route('/account', name: 'app_account', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {

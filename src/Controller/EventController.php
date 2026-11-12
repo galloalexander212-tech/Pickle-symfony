@@ -76,13 +76,19 @@ class EventController extends AbstractController
     }
 
     #[Route('/events/{id}/leave', name: 'app_event_leave', methods: ['POST'])]
-    public function leave(int $id, EntityManagerInterface $entityManager): Response
+    public function leave(int $id, Request $request, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
         if (!$user instanceof User) {
             $this->addFlash('error', 'Please log in to join events.');
 
             return $this->redirectToRoute('app_login', ['notice' => 'login-event']);
+        }
+
+        if (!$this->isCsrfTokenValid('leave_event_' . $id, (string) $request->request->get('_token', ''))) {
+            $this->addFlash('error', 'The leave request expired. Please try again.');
+
+            return $this->redirectToRoute('app_account');
         }
 
         $event = $entityManager->getRepository(Event::class)->find($id);

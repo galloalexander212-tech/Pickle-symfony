@@ -191,6 +191,48 @@ h1, h2, h3, button, a, label {
     display: inline;
 }
 
+.admin-row-actions select,
+.records-filter input,
+.records-filter select {
+
+    min-height: 34px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 5px;
+
+    padding: 5px 8px;
+
+    font: inherit;
+}
+
+.records-filter {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin: 20px 0;
+}
+
+.records-filter label {
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+.records-filter input {
+
+    min-width: 220px;
+}
+
 
 .auth-card.center {
 
@@ -866,6 +908,38 @@ h1, h2, h3, button, a, label {
     color: #c0392b;
 }
 
+.small-btn.approve {
+
+    background: var(--green);
+
+    border-color: var(--green);
+
+    color: #ffffff;
+}
+
+.small-btn.approve:hover {
+
+    background: var(--dark-green);
+
+    border-color: var(--green);
+
+    color: #ffffff;
+}
+
+.small-btn.reject {
+
+    border-color: #c0392b;
+
+    color: #c0392b;
+}
+
+.small-btn.reject:hover {
+
+    background: #c0392b;
+
+    color: #ffffff;
+}
+
 
 .row-form {
 
@@ -1123,6 +1197,13 @@ h1, h2, h3, button, a, label {
     border-bottom: 1px solid var(--border);
 }
 
+.booking-item > div:first-child {
+
+    flex: 1;
+
+    min-width: 0;
+}
+
 .booking-item strong {
 
     display: block;
@@ -1170,6 +1251,13 @@ h1, h2, h3, button, a, label {
     color: #b8860b;
 }
 
+.status.payment_claimed {
+
+    background: #fff3cd;
+
+    color: #795b00;
+}
+
 .status.confirmed {
 
     background: #edf4e9;
@@ -1182,6 +1270,58 @@ h1, h2, h3, button, a, label {
     background: #fdeeea;
 
     color: #b03a2e;
+}
+
+.status.rejected {
+
+    background: #fdeeea;
+
+    color: #b03a2e;
+}
+
+.payment-panel {
+
+    margin-top: 10px;
+
+    padding: 12px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+}
+
+.payment-panel summary {
+
+    color: var(--green);
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+}
+
+.payment-panel p,
+.payment-hint {
+
+    margin: 8px 0;
+
+    color: var(--gray);
+
+    font-size: 12px;
+}
+
+.payment-qr {
+
+    display: block;
+
+    width: min(220px, 100%);
+
+    margin: 10px 0;
+
+    border-radius: 6px;
 }
 
 
@@ -1296,6 +1436,15 @@ body {
     color: #cfd8cf;
 }
 
+.admin-row-actions select,
+.records-filter input,
+.records-filter select {
+
+    background: #1c231e;
+
+    color: #e8ece7;
+}
+
 .small-btn:hover {
 
     border-color: var(--lime);
@@ -1345,6 +1494,13 @@ body {
     color: #f0c05a;
 }
 
+.status.payment_claimed {
+
+    background: rgba(240, 180, 30, 0.12);
+
+    color: #f0c05a;
+}
+
 .status.confirmed {
 
     background: rgba(155, 234, 0, 0.12);
@@ -1357,6 +1513,45 @@ body {
     background: rgba(255, 90, 70, 0.12);
 
     color: #ff8a7a;
+}
+
+.status.rejected {
+
+    background: rgba(255, 90, 70, 0.12);
+
+    color: #ff8a7a;
+}
+
+.small-btn.approve {
+
+    background: var(--green);
+
+    border-color: var(--green);
+
+    color: #ffffff;
+}
+
+.small-btn.approve:hover {
+
+    background: var(--dark-green);
+
+    border-color: var(--lime);
+
+    color: #ffffff;
+}
+
+.small-btn.reject {
+
+    border-color: #ff8a7a;
+
+    color: #ff8a7a;
+}
+
+.small-btn.reject:hover {
+
+    background: #b03a2e;
+
+    color: #ffffff;
 }
 
 
@@ -2073,13 +2268,36 @@ body {
 .profile-form-card .form-actions {
 
     margin-top: auto;
+
+    width: 100%;
+
+    min-width: 0;
 }
 
 .profile-form-card .avatar-colors {
 
-    min-height: 45px;
+    display: grid;
 
-    align-items: center;
+    grid-template-columns: repeat(auto-fit, 30px);
+
+    justify-content: start;
+
+    width: 100%;
+
+    min-width: 0;
+
+    min-height: 68px;
+
+    gap: 8px;
+
+    margin: 0;
+}
+
+.profile-form-card .avatar-color {
+
+    width: 30px;
+
+    height: 30px;
 
     margin: 0;
 }
@@ -2087,6 +2305,28 @@ body {
 .profile-form-card .form-actions .form-primary {
 
     width: 100%;
+
+    min-width: 0;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 0 8px;
+
+    font-size: 10px;
+
+    white-space: nowrap;
+}
+
+.tab-panel#login-panel .form-actions {
+
+    justify-content: center;
+}
+
+.tab-panel#login-panel .form-actions .form-primary {
+
+    min-width: 160px;
 }
 
 .layout-form.auth-form .show-pass {

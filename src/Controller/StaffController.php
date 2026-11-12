@@ -31,8 +31,18 @@ class StaffController extends AbstractController
             'stats' => [
                 'courts' => $entityManager->getRepository(Court::class)->count(['owner' => $staff]),
                 'events' => $this->ownedEventQuery($entityManager, $staff)->select('COUNT(event.id)')->getQuery()->getSingleScalarResult(),
-                'bookings' => $this->ownedBookingQuery($entityManager, $staff)->select('COUNT(booking.id)')->getQuery()->getSingleScalarResult(),
-                'joins' => $this->ownedJoinQuery($entityManager, $staff)->select('COUNT(eventJoin.id)')->getQuery()->getSingleScalarResult(),
+                'bookings' => $this->ownedBookingQuery($entityManager, $staff)
+                    ->select('COUNT(booking.id)')
+                    ->andWhere('booking.status = :claimed')
+                    ->setParameter('claimed', 'payment_claimed')
+                    ->getQuery()
+                    ->getSingleScalarResult(),
+                'joins' => $this->ownedJoinQuery($entityManager, $staff)
+                    ->select('COUNT(eventJoin.id)')
+                    ->andWhere('eventJoin.status = :claimed')
+                    ->setParameter('claimed', 'payment_claimed')
+                    ->getQuery()
+                    ->getSingleScalarResult(),
             ],
         ]);
     }
@@ -196,6 +206,69 @@ class StaffController extends AbstractController
                 ->getQuery()
                 ->getResult(),
         ]);
+    }
+
+    #[Route('/staff/bookings/{type}/{id}/status', name: 'app_staff_booking_status', requirements: ['type' => 'booking|join'], methods: ['POST'])]
+    public function updateBookingStatus(
+        string $type,
+        int $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $staff = $this->staffUser();
+        $action = (string) $request->request->get('action', '');
+
+        if ($type === 'booking') {
+            $record = $entityManager->getRepository(Booking::class)->find($id);
+            if (!$record instanceof Booking) {
+                throw $this->createNotFoundException('Booking not found.');
+            }
+            $court = $record->getCourt();
+            if ($court === null || $court->getOwner() !== $staff) {
+                throw new AccessDeniedException('You do not own this court.');
+            }
+            $status = $record->getStatus();
+            $isFree = (float) ($court->getPrice() ?? 0) <= 0;
+        } else {
+            $record = $entityManager->getRepository(EventJoin::class)->find($id);
+            if (!$record instanceof EventJoin) {
+                throw $this->createNotFoundException('Event registration not found.');
+            }
+            $event = $record->getEvent();
+            $court = $event?->getCourt();
+            if ($court === null || $court->getOwner() !== $staff) {
+                throw new AccessDeniedException('You do not own this court.');
+            }
+            $status = $record->getStatus();
+            $isFree = (float) ($event?->getEntranceFee() ?? 0) <= 0;
+        }
+
+        if (!in_array($action, ['accept', 'reject'], true)
+            || !$this->isCsrfTokenValid('staff_payment_' . $type . '_' . $id . '_' . $action, (string) $request->request->get('_token', ''))
+        ) {
+            $this->addFlash('error', 'The payment decision expired or the action is invalid. Please try again.');
+
+            return $this->redirectToRoute('app_staff_bookings');
+        }
+
+        $canAcceptFreePending = $action === 'accept' && $status === 'pending' && $isFree;
+        $canDecideClaimed = $status === 'payment_claimed';
+        if (!$canAcceptFreePending && !$canDecideClaimed) {
+            $this->addFlash('error', 'This payment record is no longer actionable.');
+
+            return $this->redirectToRoute('app_staff_bookings');
+        }
+        if ($action === 'reject' && !$canDecideClaimed) {
+            $this->addFlash('error', 'Only a claimed payment can be rejected.');
+
+            return $this->redirectToRoute('app_staff_bookings');
+        }
+
+        $record->setStatus($action === 'accept' ? 'confirmed' : 'rejected');
+        $entityManager->flush();
+        $this->addFlash('success', $action === 'accept' ? 'Payment accepted — player confirmed.' : 'Payment rejected.');
+
+        return $this->redirectToRoute('app_staff_bookings');
     }
 
     private function courtForm(

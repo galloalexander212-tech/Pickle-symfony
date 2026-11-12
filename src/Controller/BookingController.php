@@ -198,6 +198,12 @@ class BookingController extends AbstractController
     private function cancel(Request $request, EntityManagerInterface $entityManager, User $user): Response
     {
         $bookingId = $request->request->getInt('booking_id');
+        if ($bookingId < 1 || !$this->isCsrfTokenValid('cancel_booking_' . $bookingId, (string) $request->request->get('_token', ''))) {
+            $this->addFlash('error', 'The cancellation expired. Please try again.');
+
+            return $this->redirectToRoute('app_account');
+        }
+
         $booking = $bookingId > 0 ? $entityManager->getRepository(Booking::class)->find($bookingId) : null;
         if ($booking instanceof Booking && $booking->getUser()?->getId() === $user->getId() && $booking->getStatus() !== 'cancelled') {
             $booking->setStatus('cancelled');

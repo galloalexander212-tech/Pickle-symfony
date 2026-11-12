@@ -22,6 +22,103 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class AdminController extends AbstractController
 {
+    #[Route('/admin/records', name: 'app_admin_records', methods: ['GET', 'POST'])]
+    public function records(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $allowedStatuses = ['pending', 'payment_claimed', 'confirmed', 'rejected', 'cancelled'];
+
+        if ($request->isMethod('POST')) {
+            $type = (string) $request->request->get('type', '');
+            $action = (string) $request->request->get('action', '');
+            $id = $request->request->getInt('record_id');
+            $status = (string) $request->request->get('status', '');
+            $csrfId = 'admin_record_' . $type . '_' . $id . '_' . $action;
+
+            if (!in_array($type, ['booking', 'join'], true)
+                || !in_array($action, ['update', 'delete'], true)
+                || $id < 1
+                || !$this->isCsrfTokenValid($csrfId, (string) $request->request->get('_token', ''))
+            ) {
+                $this->addFlash('error', 'The record action expired or is invalid. Please try again.');
+            } else {
+                $class = $type === 'booking' ? Booking::class : EventJoin::class;
+                $record = $entityManager->getRepository($class)->find($id);
+                if (!$record instanceof Booking && !$record instanceof EventJoin) {
+                    $this->addFlash('error', 'Record not found.');
+                } elseif ($action === 'update' && !in_array($status, $allowedStatuses, true)) {
+                    $this->addFlash('error', 'Choose a valid record status.');
+                } elseif ($action === 'update') {
+                    $record->setStatus($status);
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Record status updated.');
+                } else {
+                    $entityManager->remove($record);
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Record deleted.');
+                }
+            }
+
+            $redirectFilters = [];
+            $query = trim((string) $request->request->get('q', ''));
+            $filterStatus = (string) $request->request->get('filter_status', '');
+            if ($query !== '') {
+                $redirectFilters['q'] = $query;
+            }
+            if ($filterStatus !== '') {
+                $redirectFilters['status'] = $filterStatus;
+            }
+
+            return $this->redirectToRoute('app_admin_records', $redirectFilters);
+        }
+
+        $query = trim((string) $request->query->get('q', ''));
+        $query = substr($query, 0, 100);
+        $status = (string) $request->query->get('status', '');
+        if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
+            $this->addFlash('error', 'The selected status filter is invalid.');
+            $status = '';
+        }
+
+        $bookingQuery = $entityManager->getRepository(Booking::class)->createQueryBuilder('booking')
+            ->addSelect('user', 'court')
+            ->join('booking.user', 'user')
+            ->leftJoin('booking.court', 'court')
+            ->orderBy('booking.bookingDate', 'DESC')
+            ->addOrderBy('booking.bookingTime', 'DESC');
+        if ($query !== '') {
+            $bookingQuery
+                ->andWhere('LOWER(user.username) LIKE LOWER(:query) OR LOWER(booking.courtName) LIKE LOWER(:query) OR LOWER(court.name) LIKE LOWER(:query)')
+                ->setParameter('query', '%' . $query . '%');
+        }
+        if ($status !== '') {
+            $bookingQuery->andWhere('booking.status = :status')->setParameter('status', $status);
+        }
+
+        $joinQuery = $entityManager->getRepository(EventJoin::class)->createQueryBuilder('eventJoin')
+            ->addSelect('user', 'event', 'court')
+            ->join('eventJoin.user', 'user')
+            ->join('eventJoin.event', 'event')
+            ->leftJoin('event.court', 'court')
+            ->orderBy('event.eventDate', 'DESC')
+            ->addOrderBy('event.eventTime', 'DESC');
+        if ($query !== '') {
+            $joinQuery
+                ->andWhere('LOWER(user.username) LIKE LOWER(:query) OR LOWER(event.title) LIKE LOWER(:query) OR LOWER(court.name) LIKE LOWER(:query)')
+                ->setParameter('query', '%' . $query . '%');
+        }
+        if ($status !== '') {
+            $joinQuery->andWhere('eventJoin.status = :status')->setParameter('status', $status);
+        }
+
+        return $this->render('account/admin_records.html.twig', [
+            'bookings' => $bookingQuery->getQuery()->getResult(),
+            'joins' => $joinQuery->getQuery()->getResult(),
+            'query' => $query,
+            'status' => $status,
+            'statuses' => $allowedStatuses,
+        ]);
+    }
+
     #[Route('/admin', name: 'app_admin', methods: ['GET', 'POST'])]
     public function dashboard(Request $request, EntityManagerInterface $entityManager): Response
     {

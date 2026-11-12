@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PICKLE | Admin Records</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('auth.css') }}">
+</head>
+<body>
+<div class="auth-wrap">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash {{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    <main class="auth-card wide">
+        <div class="admin-head">
+            <div>
+                <a href="{{ path('app_home') }}" class="auth-logo">
+                    <img src="{{ asset('images/logo.png') }}" alt="PICKLE" class="auth-logo-img">
+                </a>
+                <h1 class="auth-title">Admin Records</h1>
+                <p class="auth-sub">Search and manage all bookings and event joins.</p>
+            </div>
+            <div class="admin-top-actions">
+                <a href="{{ path('app_admin') }}" class="small-btn">DASHBOARD</a>
+                <a href="{{ path('app_admin_users') }}" class="small-btn">USERS</a>
+                <a href="{{ path('app_account') }}" class="small-btn">MY ACCOUNT</a>
+                <a href="{{ path('app_logout') }}" class="small-btn danger">LOG OUT</a>
+            </div>
+        </div>
+
+        <form method="GET" action="{{ path('app_admin_records') }}" class="records-filter">
+            <label for="record-search">SEARCH</label>
+            <input id="record-search" type="search" name="q" value="{{ query }}" placeholder="Username, court or event">
+            <label for="record-status">STATUS</label>
+            <select id="record-status" name="status">
+                <option value="">ALL STATUSES</option>
+                {% for option in statuses %}
+                    <option value="{{ option }}" {% if status == option %}selected{% endif %}>{{ option|replace({'_': ' '})|upper }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="small-btn approve">FILTER</button>
+        </form>
+
+        <h2 class="admin-section-title">BOOKINGS</h2>
+        {% if bookings is empty %}
+            <p class="empty-note">No matching bookings.</p>
+        {% else %}
+            <div class="table-wrap">
+                <table class="admin-table">
+                    <thead>
+                    <tr><th>USER</th><th>COURT</th><th>DATE / SLOT</th><th>FEE</th><th>STATUS</th><th>ACTIONS</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for booking in bookings %}
+                        {% set fee = booking.court ? booking.court.price : null %}
+                        <tr>
+                            <td>{{ booking.user.username }}</td>
+                            <td>{{ booking.courtName }}</td>
+                            <td>{{ booking.bookingDate|date('M j, Y') }} {{ booking.bookingTime|date('g:i A') }}</td>
+                            <td>{% if fee is null or fee + 0 == 0 %}FREE{% else %}₱{{ fee|number_format(2, '.', ',') }}{% endif %}</td>
+                            <td><span class="badge {{ booking.status }}">{{ booking.status|replace({'_': ' '})|upper }}</span></td>
+                            <td>
+                                <div class="admin-row-actions">
+                                    <form method="POST" action="{{ path('app_admin_records') }}" class="row-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_record_booking_' ~ booking.id ~ '_update') }}">
+                                        <input type="hidden" name="type" value="booking">
+                                        <input type="hidden" name="record_id" value="{{ booking.id }}">
+                                        <input type="hidden" name="action" value="update">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="filter_status" value="{{ status }}">
+                                        <select name="status" aria-label="Booking status">
+                                            {% for option in statuses %}
+                                                <option value="{{ option }}" {% if booking.status == option %}selected{% endif %}>{{ option|replace({'_': ' '})|upper }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="small-btn">SAVE</button>
+                                    </form>
+                                    <form method="POST" action="{{ path('app_admin_records') }}" class="row-form" onsubmit="return confirm('Delete this booking permanently?')">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_record_booking_' ~ booking.id ~ '_delete') }}">
+                                        <input type="hidden" name="type" value="booking">
+                                        <input type="hidden" name="record_id" value="{{ booking.id }}">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="filter_status" value="{{ status }}">
+                                        <button type="submit" class="small-btn danger">DELETE</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+
+        <h2 class="admin-section-title">EVENT JOINS</h2>
+        {% if joins is empty %}
+            <p class="empty-note">No matching event joins.</p>
+        {% else %}
+            <div class="table-wrap">
+                <table class="admin-table">
+                    <thead>
+                    <tr><th>USER</th><th>EVENT</th><th>COURT</th><th>DATE / SLOT</th><th>FEE</th><th>STATUS</th><th>ACTIONS</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for eventJoin in joins %}
+                        {% set event = eventJoin.event %}
+                        {% set fee = event.entranceFee %}
+                        <tr>
+                            <td>{{ eventJoin.user.username }}</td>
+                            <td>{{ event.title }}</td>
+                            <td>{{ event.court ? event.court.name : '—' }}</td>
+                            <td>{{ event.eventDate|date('M j, Y') }} {{ event.eventTime|date('g:i A') }}</td>
+                            <td>{% if fee is null or fee + 0 == 0 %}FREE{% else %}₱{{ fee|number_format(2, '.', ',') }}{% endif %}</td>
+                            <td><span class="badge {{ eventJoin.status }}">{{ eventJoin.status|replace({'_': ' '})|upper }}</span></td>
+                            <td>
+                                <div class="admin-row-actions">
+                                    <form method="POST" action="{{ path('app_admin_records') }}" class="row-form">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_record_join_' ~ eventJoin.id ~ '_update') }}">
+                                        <input type="hidden" name="type" value="join">
+                                        <input type="hidden" name="record_id" value="{{ eventJoin.id }}">
+                                        <input type="hidden" name="action" value="update">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="filter_status" value="{{ status }}">
+                                        <select name="status" aria-label="Event join status">
+                                            {% for option in statuses %}
+                                                <option value="{{ option }}" {% if eventJoin.status == option %}selected{% endif %}>{{ option|replace({'_': ' '})|upper }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="small-btn">SAVE</button>
+                                    </form>
+                                    <form method="POST" action="{{ path('app_admin_records') }}" class="row-form" onsubmit="return confirm('Delete this event join permanently?')">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_record_join_' ~ eventJoin.id ~ '_delete') }}">
+                                        <input type="hidden" name="type" value="join">
+                                        <input type="hidden" name="record_id" value="{{ eventJoin.id }}">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="q" value="{{ query }}">
+                                        <input type="hidden" name="filter_status" value="{{ status }}">
+                                        <button type="submit" class="small-btn danger">DELETE</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+
+        <a class="auth-back" href="{{ path('app_home') }}">← BACK TO HOMEPAGE</a>
+    </main>
+</div>
+</body>
+</html>

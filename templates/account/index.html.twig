@@ -149,12 +149,38 @@
                             •
                             {{ booking.players }} players
                         </span>
+                        {% set bookingPrice = booking.court ? booking.court.price : null %}
+                        <span class="meta">
+                            Fee:
+                            {% if bookingPrice is null or bookingPrice + 0 == 0 %}
+                                FREE
+                            {% else %}
+                                ₱{{ bookingPrice|number_format(2, '.', ',') }} / hour
+                            {% endif %}
+                        </span>
+                        {% if booking.status == 'pending' and bookingPrice is not null and bookingPrice + 0 > 0 %}
+                            <details class="payment-panel">
+                                <summary>PAY NOW</summary>
+                                <p>Amount: ₱{{ bookingPrice|number_format(2, '.', ',') }} (1 hour)</p>
+                                {% if booking.court.qrPath %}
+                                    <img class="payment-qr" src="{{ asset('uploads/qr/' ~ booking.court.qrPath) }}" alt="Payment QR for {{ booking.court.name }}">
+                                    <form method="POST" action="{{ path('app_account_booking_claim', {id: booking.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('claim_booking_payment_' ~ booking.id) }}">
+                                        <button type="submit" class="small-btn approve">I'VE PAID</button>
+                                    </form>
+                                {% else %}
+                                    <p class="payment-hint">The owner has not set a payment QR yet</p>
+                                {% endif %}
+                            </details>
+                        {% elseif booking.status == 'payment_claimed' %}
+                            <p class="payment-hint">Waiting for confirmation</p>
+                        {% endif %}
                     </div>
 
                     <div class="booking-side">
 
-                        <span class="status {{ booking.status }}">
-                            {{ booking.status|upper }}
+                        <span class="badge {{ booking.status }}">
+                            {{ booking.status|replace({'_': ' '})|upper }}
                         </span>
 
                         {% if booking.status != 'cancelled' %}
@@ -164,6 +190,7 @@
 
                                 <input type="hidden" name="action" value="cancel">
                                 <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('cancel_booking_' ~ booking.id) }}">
 
                                 <button type="submit" class="small-btn danger">
                                     CANCEL
@@ -210,9 +237,37 @@
                                 • 🏆 {{ event.prize }}
                             {% endif %}
                         </span>
+                        <span class="meta">
+                            Entrance fee:
+                            {% if event.entranceFee is null or event.entranceFee + 0 == 0 %}
+                                FREE
+                            {% else %}
+                                ₱{{ event.entranceFee|number_format(2, '.', ',') }}
+                            {% endif %}
+                        </span>
+                        {% if eventJoin.status == 'pending' and event.entranceFee is not null and event.entranceFee + 0 > 0 %}
+                            <details class="payment-panel">
+                                <summary>PAY NOW</summary>
+                                <p>Amount: ₱{{ event.entranceFee|number_format(2, '.', ',') }}</p>
+                                {% if event.court and event.court.qrPath %}
+                                    <img class="payment-qr" src="{{ asset('uploads/qr/' ~ event.court.qrPath) }}" alt="Payment QR for {{ event.title }}">
+                                    <form method="POST" action="{{ path('app_account_event_join_claim', {id: eventJoin.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('claim_event_join_payment_' ~ eventJoin.id) }}">
+                                        <button type="submit" class="small-btn approve">I'VE PAID</button>
+                                    </form>
+                                {% else %}
+                                    <p class="payment-hint">The owner has not set a payment QR yet</p>
+                                {% endif %}
+                            </details>
+                        {% elseif eventJoin.status == 'payment_claimed' %}
+                            <p class="payment-hint">Waiting for confirmation</p>
+                        {% endif %}
                     </div>
 
                     <div class="booking-side">
+                        <span class="badge {{ eventJoin.status }}">
+                            {{ eventJoin.status|replace({'_': ' '})|upper }}
+                        </span>
 
                         {% if event.eventDate < date('today') %}
 
@@ -224,6 +279,7 @@
 
                             <form method="POST" action="{{ path('app_event_leave', {id: event.id}) }}"
                                   onsubmit="return confirm('Leave this event?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('leave_event_' ~ event.id) }}">
 
                                 <button type="submit" class="small-btn danger">
                                     LEAVE
